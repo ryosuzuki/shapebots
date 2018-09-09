@@ -4,18 +4,20 @@ var io = require('socket.io')(http);
 var port = process.env.PORT || 3000;
 var cv = require('opencv');
 var center_of_marker = {};
+var window;
 
 function detector(){
   try {
     var camera = new cv.VideoCapture(0);
-    var window = new cv.NamedWindow('Video', 0)
+    // window = new cv.NamedWindow('Video', '400x400');
+    window = new cv.NamedWindow('Video', 1);
 
     setInterval(function() {
       camera.read(function(err, im) {
         if (err) throw err;
         console.log(im.size())
         if (im.size()[0] > 0 && im.size()[1] > 0){
-          window.show(im);
+          // window.show(im);
           var im2 = new cv.Matrix(im.width(),im.height());
           im2 = im.clone();
           findRedMarkerPoint(im);
@@ -37,6 +39,7 @@ function findContour(im){
   var upper_threshold = [255,255,255];
   im.inRange(lower_threshold, upper_threshold);
   im.bitwiseNot(im);
+  window.show(im);
   var contours = im.findContours();
   for(var c = 0; c < contours.size(); ++c) {
     var rect= contours.minAreaRect(c)

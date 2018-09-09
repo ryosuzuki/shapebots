@@ -12,12 +12,30 @@
   </head>
   <body>
 
-    <canvas id="table" width="700" height="600" ></canvas>
+    <canvas id="table" width="520" height="390" ></canvas>
 
-    <button id="update_pos">update position</button>
+    <div>
+     <p>Robot information</p> 
+     <p><b>angle: </b><span id="robot_angle"></span></p>
+     <p><b>position: </b></p>
+     <p><b>    x: </b><span id="robot_x"></span></p>
+     <p><b>    y: </b><span id="robot_y"></span></p>
+     <p><b>width: </b><span id="robot_width"></span></p>
+     <p><b>height: </b><span id="robot_height"></span></p>
+     <p><b>marker: </b></p>
+     <p><b>    x: </b><span id="robot_marker_x"></span></p>
+     <p><b>    y: </b><span id="robot_marker_y"></span></p>
+    </div>
+
+<!--     <p>angle [degree]</p>
+    <input id="angle"/>
+    <p>destination [cm]</p>
+    <input id="destination" />
+    <button id="update_position">update position</button>
+ -->
     <script>
-      var socket = io();
       $(function () {
+        var socket = io();
         var robot = new Robot();
         var scale = 2;
         var x0 = 0;
@@ -57,6 +75,9 @@
 
           this.marker_x = 0;
           this.marker_y = 0;
+
+          this.cgx = 0;
+          this.cgy = 0;
         }
 
         function drawMarker(){
@@ -78,19 +99,31 @@
           y = robot.y_ul/scale;
           x_prev = robot.x_ul_prev/scale;
           y_prev = robot.y_ul_prev/scale;
-          console.log('hi');
-          console.log(x_prev,y_prev,width_prev,height_prev,angle_prev);
-          console.log(x,y,width,height,angle);
+          cgx = robot.cgx/scale;
+          cgy = robot.cgx/scale;
 
           clearCanvas();
 
+          ctx.translate(cgx, cgy);
           ctx.rotate( angle * Math.PI / 180 );
-          ctx.fillStyle = 'black';
-          ctx.fillRect(x,y,width,height);
+          ctx.translate(-cgx, -cgy);
+
+          drawRectangleFromCenter(cgx,cgy,width,height);
           drawMarker();
           ctx.stroke(); 
           ctx.fill();
+
+          ctx.translate(cgx, cgy);
           ctx.rotate( -angle * Math.PI / 180 );
+          ctx.translate(-cgx, -cgy);
+
+        }
+
+        function drawRectangleFromCenter(cgx,cgy,width,height){
+          var x = cgx-width/2;
+          var y = cgy-height/2;
+          ctx.fillStyle = 'black';
+          ctx.fillRect(x,y,width,height);
         }
 
         function updateLeftUpperPoint(points){
@@ -107,6 +140,19 @@
           }
           cgx = sumx / points.length;
           cgy = sumy / points.length;
+
+          robot.cgx = cgx;
+          robot.cgy = cgy;
+        }
+
+        function showRobotInfo(){
+          $("#robot_angle").text(robot.angle);
+          $("#robot_x").text(robot.cgx);
+          $("#robot_y").text(robot.cgy);
+          $("#robot_width").text(robot.size.width);
+          $("#robot_height").text(robot.size.height);
+          $("#robot_marker_x").text(robot.marker_x);
+          $("#robot_marker_y").text(robot.marker_y);
         }
 
         function sortPointIndices(points){
@@ -163,7 +209,7 @@
         socket.on('update_browser', function(msg){
           console.log(msg);
           robot.x_ul_prev = robot.x_ul;
-          robot.x_ul_prev = robot.y_ul;
+          robot.y_ul_prev = robot.y_ul;
           robot.angle_prev = robot.angle;
           robot.size_prev = robot.size;
           robot.points_prev = robot.points;
@@ -176,16 +222,20 @@
 
           sortPointIndices(msg.points);
           updateLeftUpperPoint(robot.points);
+          computeCenterOfGravity(robot.points);
+
+          console.log(robot);
+          showRobotInfo();
 
           drawRobot();
           drawMarker();
         });
 
-        $("#update_pos").click(function(){
-          x = robot.x + 10;
-          y = robot.x + 10;
-          socket.emit('update_val', {x:x,y:y});
-        });
+        // $("#update_position").click(function(){
+        //   var angle = $("#angle").text();
+        //   var destination  = $("#destination").text();
+        //   socket.emit('update_position', {angle:angle, destination:destination});
+        // });
       });
 
     </script>
