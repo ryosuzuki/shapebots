@@ -6,6 +6,13 @@ var cv = require('opencv');
 var center_of_marker = {};
 var window;
 
+var SerialPort = require("serialport");
+var port = new SerialPort("/dev/tty.usbmodem1451", 
+  {
+    baudRate: 115200,
+  }
+);
+
 function detector(){
   try {
     var camera = new cv.VideoCapture(0);
@@ -83,17 +90,40 @@ function computeCenterOfGravity(points){
   center_of_marker = {marker_x: cgx, marker_y: cgy};
 }
 
+function write_to_arduino(angle,distance){
+  command = "{\"angle\":\""+angle+"\",\"distance\":\""+distance+"\"}\n";
+  console.log(command);
+  port.write(command , function(err,bytesWritten){
+    if(err){
+      return console.log('Error: ',err.message);
+    }
+  });
+}
+
+port.on('open', function () {
+  console.log("serial port open");
+});
+
+port.on('data', function (data) {
+  console.log('Received: ' + data);
+});
+
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
 
 io.on('connection', function(socket){
-  socket.on('update_val', function(data){
-    io.emit('update_browser', data);
-  });
+  // socket.on('update_val', function(data){
+  //   io.emit('update_browser', data);
+  // });
 
   detector();
+
+  socket.on('update_position', function(data){
+    write_to_arduino(data.angle, data.distance); 
+  });
 });
+
 
 http.listen(port, function(){
   console.log('listening on *:' + port);

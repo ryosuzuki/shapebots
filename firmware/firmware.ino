@@ -10,6 +10,7 @@ void setup(){
   }
   Serial.println("Serial initialized.");
   delay(500);
+  pinMode(13,OUTPUT);
 }
 
 void loop()
@@ -37,11 +38,22 @@ void loop()
   }
 
   const char* angle = root["angle"];
-  const char* destination = root["destination"];
+  const char* distance = root["distance"];
 
-  Serial.print("angle:");
-  Serial.print(angle);
-  Serial.print(", destination:");
-  Serial.print(destination);
+  int a = atoi(angle);
+  int b = atoi(distance);
+
+  if(a==30&&b==10){
+   for(int i=0;i<20;i++){
+    digitalWrite(13,HIGH);
+    delay(200);
+    digitalWrite(13,LOW);
+    delay(200);
+   }
+  }
+//  Serial.print("angle:");
+//  Serial.print(angle);
+//  Serial.print(", destination:");
+//  Serial.print(destination);
 }
 

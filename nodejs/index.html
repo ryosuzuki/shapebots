@@ -17,10 +17,10 @@
     <div>
      <p>Robot information</p> 
      <p><b>angle: </b><span id="robot_angle"></span></p>
-     <p><b>Upple left position: </b></p>
+     <p><b>Upper left position: </b></p>
      <p><b>    x: </b><span id="robot_x"></span></p>
      <p><b>    y: </b><span id="robot_y"></span></p>
-     <p><b>COG: </b></p>
+     <p><b>Center of gravity: </b></p>
      <p><b>    cgx: </b><span id="robot_cgx"></span></p>
      <p><b>    cgy: </b><span id="robot_cgy"></span></p>
      <p><b>width: </b><span id="robot_width"></span></p>
@@ -32,6 +32,10 @@
      <p><b>Pattern: </b><span id="robot_pattern"></span></p>
     </div>
 
+    <hr/>
+    <input id="destination" value="10" />
+    <input id="angle" value="30" />
+    <button id="send_arduino">send to Arduino</button>
 <!--     <p>angle [degree]</p>
     <input id="angle"/>
     <p>destination [cm]</p>
@@ -87,7 +91,11 @@
           var angle;
           switch(pattern){
             case 1:
-              angle = Math.PI-Math.atan2(cgy-marker_y,cgx-marker_x);
+              if(robot.angle<-45){
+                angle = Math.PI+Math.atan2(marker_y-cgy,cgx-marker_x);
+              } else{ 
+                angle = Math.PI-Math.atan2(cgy-marker_y,cgx-marker_x);
+              }
             break;
             case 2:
               if(robot.angle<-45){
@@ -301,6 +309,13 @@
 
           drawRobot();
           drawMarker();
+        });
+
+        $("#send_arduino").click(function(){
+          var angle = $("#angle").val();
+          var distance = $("#distance").val();
+          // alert(angle+', '+distance) ;
+          socket.emit('update_position', {angle:angle, distance:distance});
         });
 
         // $("#update_position").click(function(){
