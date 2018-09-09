@@ -6,12 +6,8 @@ var cv = require('opencv');
 var center_of_marker = {};
 var window;
 
-var SerialPort = require("serialport");
-var sport = new SerialPort("/dev/tty.usbmodem1451", 
-  {
-    baudRate: 115200,
-  }
-);
+// var USE_ARDUINO = true;
+var USE_ARDUINO = false;
 
 function detector(){
   try {
@@ -89,23 +85,33 @@ function computeCenterOfGravity(points){
   center_of_marker = {marker_x: cgx, marker_y: cgy};
 }
 
-function write_to_arduino(angle,distance){
-  command = "{\"angle\":\""+angle+"\",\"distance\":\""+distance+"\"}\n";
-  console.log(command);
-  sport.write(command , function(err,bytesWritten){
-    if(err){
-      return console.log('Error: ',err.message);
-    }
+
+if(USE_ARDUINO){
+  var SerialPort = require("serialport");
+  var sport = new SerialPort("/dev/tty.usbmodem1451", 
+  {
+    baudRate: 115200,
+  }
+  );
+
+  function write_to_arduino(angle,distance){
+    command = "{\"angle\":\""+angle+"\",\"distance\":\""+distance+"\"}\n";
+    console.log(command);
+    sport.write(command , function(err,bytesWritten){
+      if(err){
+        return console.log('Error: ',err.message);
+      }
+    });
+  }
+
+  sport.on('open', function () {
+    console.log("serial port open");
+  });
+
+  sport.on('data', function (data) {
+    console.log('Received: ' + data);
   });
 }
-
-sport.on('open', function () {
-  console.log("serial port open");
-});
-
-sport.on('data', function (data) {
-  console.log('Received: ' + data);
-});
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
@@ -116,7 +122,9 @@ io.on('connection', function(socket){
   detector();
 
   socket.on('update_position', function(data){
-    write_to_arduino(data.angle, data.distance); 
+    if(USE_ARDUINO){
+      write_to_arduino(data.angle, data.distance); 
+    } 
   });
 });
 
