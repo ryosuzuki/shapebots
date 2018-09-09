@@ -15,7 +15,8 @@ camera.read(function(err, im) {
 
 function findContour(im){
   im.cvtColor('CV_BGR2GRAY');
-  var lower_threshold = [70,70, 70]; //Make sure to change
+  // var lower_threshold = [70,70, 70]; //Make sure to change
+  var lower_threshold = [40,40, 40]; //Make sure to change
   var upper_threshold = [255,255,255];
   im.inRange(lower_threshold, upper_threshold);
   im.save('thresh.jpg');

@@ -55,4 +55,18 @@ function sortPoint(points){
 
 }
 
+function computeCenterOfGravity(points){
+          sumx = 0;
+          sumy = 0;
+          for(var i=0;i<points.length;i++){
+            sumx += points[i].x;
+            sumy += points[i].y;
+          }
+          cgx = sumx / points.length;
+          cgy = sumy / points.length;
+          console.log(cgx,cgy);
+}
+
 sortPoint(p);
+
+computeCenterOfGravity(p);

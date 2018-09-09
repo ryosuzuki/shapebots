@@ -6,7 +6,7 @@ camera.read(function(err, im) {
   if (err) throw err;
   console.log(im.size())
   if (im.size()[0] > 0 && im.size()[1] > 0){
-    im.save('cap.jpg');
+    im.save('cap2.jpg');
   }
 });
 

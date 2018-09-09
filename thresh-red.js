@@ -13,14 +13,15 @@ var cv = require('opencv');
 //   window.blockingWaitKey(0, 50);
 // });
 
-cv.readImage('cap.jpg', function(err, im){
-    findContour(im); 
+cv.readImage('cap2.jpg', function(err, im){
+  findRedMarkerPoint(im); 
 });
 
 function findRedMarkerPoint(im){
   im.cvtColor('CV_BGR2GRAY');
   var lower_threshold = [0,0, 0]; 
-  var upper_threshold = [60,100,255];
+  // var upper_threshold = [60,100,255];
+  var upper_threshold = [60,80,255];
   im.inRange(lower_threshold, upper_threshold);
   im.save('thresh.jpg');
   im.bitwiseNot(im);
@@ -29,9 +30,20 @@ function findRedMarkerPoint(im){
   // Access vertex data of contours
   for(var c = 0; c < contours.size(); ++c) {
     var rect= contours.minAreaRect(c)
-    if(rect.size.height<50 && rect.size.height<50){ 
-      console.log("Contour " + c);
-      console.log(rect.points);
+    if(rect.size.height<50 && rect.size.height< 10){ 
+      computeCenterOfGravity(rect.points);
     }
-}
+  }
+};
 
+function computeCenterOfGravity(points){
+          sumx = 0;
+          sumy = 0;
+          for(var i=0;i<points.length;i++){
+            sumx += points[i].x;
+            sumy += points[i].y;
+          }
+          cgx = sumx / points.length;
+          cgy = sumy / points.length;
+          console.log(cgx,cgy);
+}
