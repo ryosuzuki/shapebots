@@ -6,12 +6,12 @@ var cv = require('opencv');
 var center_of_marker = {};
 var window;
 
-// var SerialPort = require("serialport");
-// var port = new SerialPort("/dev/tty.usbmodem1451", 
-//   {
-//     baudRate: 115200,
-//   }
-// );
+var SerialPort = require("serialport");
+var sport = new SerialPort("/dev/tty.usbmodem1451", 
+  {
+    baudRate: 115200,
+  }
+);
 
 function detector(){
   try {
@@ -21,7 +21,7 @@ function detector(){
     setInterval(function() {
       camera.read(function(err, im) {
         if (err) throw err;
-        console.log(im.size())
+        // console.log(im.size())
         if (im.size()[0] > 0 && im.size()[1] > 0){
           // window.show(im);
           var im2 = new cv.Matrix(im.width(),im.height());
@@ -51,7 +51,7 @@ function findContour(im){
     var rect= contours.minAreaRect(c)
     if(rect.size.height>100 && rect.size.height>100){ 
     	var data = Object.assign(rect, center_of_marker);
-    	console.log(data);
+    	// console.log(data);
     	io.emit('update_browser', data);
     // console.log("Contour " + c);
     // console.log(rect);
@@ -89,23 +89,23 @@ function computeCenterOfGravity(points){
   center_of_marker = {marker_x: cgx, marker_y: cgy};
 }
 
-// function write_to_arduino(angle,distance){
-//   command = "{\"angle\":\""+angle+"\",\"distance\":\""+distance+"\"}\n";
-//   console.log(command);
-//   port.write(command , function(err,bytesWritten){
-//     if(err){
-//       return console.log('Error: ',err.message);
-//     }
-//   });
-// }
+function write_to_arduino(angle,distance){
+  command = "{\"angle\":\""+angle+"\",\"distance\":\""+distance+"\"}\n";
+  console.log(command);
+  sport.write(command , function(err,bytesWritten){
+    if(err){
+      return console.log('Error: ',err.message);
+    }
+  });
+}
 
-// port.on('open', function () {
-//   console.log("serial port open");
-// });
+sport.on('open', function () {
+  console.log("serial port open");
+});
 
-// port.on('data', function (data) {
-//   console.log('Received: ' + data);
-// });
+sport.on('data', function (data) {
+  console.log('Received: ' + data);
+});
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
@@ -116,7 +116,7 @@ io.on('connection', function(socket){
   detector();
 
   socket.on('update_position', function(data){
-    // write_to_arduino(data.angle, data.distance); 
+    write_to_arduino(data.angle, data.distance); 
   });
 });
 

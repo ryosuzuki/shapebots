@@ -33,15 +33,10 @@
     </div>
 
     <hr/>
-    <input id="destination" value="10" />
+    <input id="distance" value="10" />
     <input id="angle" value="30" />
     <button id="send_arduino">send to Arduino</button>
-<!--     <p>angle [degree]</p>
-    <input id="angle"/>
-    <p>destination [cm]</p>
-    <input id="destination" />
-    <button id="update_position">update position</button>
- -->
+    
     <script>
       $(function () {
         var socket = io();
@@ -314,15 +309,9 @@
         $("#send_arduino").click(function(){
           var angle = $("#angle").val();
           var distance = $("#distance").val();
-          // alert(angle+', '+distance) ;
           socket.emit('update_position', {angle:angle, distance:distance});
         });
 
-        // $("#update_position").click(function(){
-        //   var angle = $("#angle").text();
-        //   var destination  = $("#destination").text();
-        //   socket.emit('update_position', {angle:angle, destination:destination});
-        // });
       });
 
     </script>
