@@ -54,6 +54,17 @@
           this.lower_left_index = -1;
           this.upper_right_index = -1;
           this.lower_right_index = -1;
+
+          this.marker_x = 0;
+          this.marker_y = 0;
+        }
+
+        function drawMarker(){
+          x = robot.marker_x/scale;
+          y = robot.marker_y/scale;
+          ctx.beginPath();
+          ctx.fillStyle = 'red';
+          ctx.arc(x,y,5,0,2*Math.PI);
         }
 
         function drawRobot(){
@@ -74,8 +85,11 @@
           clearCanvas();
 
           ctx.rotate( angle * Math.PI / 180 );
+          ctx.fillStyle = 'black';
           ctx.fillRect(x,y,width,height);
+          drawMarker();
           ctx.stroke(); 
+          ctx.fill();
           ctx.rotate( -angle * Math.PI / 180 );
         }
 
@@ -157,11 +171,14 @@
           robot.angle = msg.angle;
           robot.size = msg.size;
           robot.points = msg.points;
+          robot.marker_x = msg.marker_x;
+          robot.marker_y = msg.marker_y;
 
           sortPointIndices(msg.points);
           updateLeftUpperPoint(robot.points);
 
           drawRobot();
+          drawMarker();
         });
 
         $("#update_pos").click(function(){
