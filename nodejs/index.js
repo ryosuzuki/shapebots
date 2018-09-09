@@ -34,8 +34,8 @@ function detector(){
 
 function findContour(im){
   im.cvtColor('CV_BGR2GRAY');
-  // var lower_threshold = [70, 70, 70];
-  var lower_threshold = [40, 40, 40];
+  var lower_threshold = [70, 70, 70]; //bright room
+  // var lower_threshold = [40, 40, 40]; //dark room
   var upper_threshold = [255,255,255];
   im.inRange(lower_threshold, upper_threshold);
   im.bitwiseNot(im);

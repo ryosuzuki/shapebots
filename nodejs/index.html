@@ -28,6 +28,8 @@
      <p><b>marker: </b></p>
      <p><b>    x: </b><span id="robot_marker_x"></span></p>
      <p><b>    y: </b><span id="robot_marker_y"></span></p>
+     <p><b>Direction: </b><span id="direction"></span></p>
+     <p><b>Pattern: </b><span id="robot_pattern"></span></p>
     </div>
 
 <!--     <p>angle [degree]</p>
@@ -71,11 +73,6 @@
           this.x_ul_prev = 0
           this.y_ul_prev = 0;
 
-          // this.upper_left_index = -1;
-          // this.lower_left_index = -1;
-          // this.upper_right_index = -1;
-          // this.lower_right_index = -1;
-
           this.marker_x = 0;
           this.marker_y = 0;
 
@@ -83,6 +80,31 @@
           this.cgy = 0;
 
           this.pattern = -1;
+          this.true_pattern = -1;
+        }
+
+        function computeAngleOfCenterAndMarker(cgx,cgy,marker_x,marker_y,pattern){
+          var angle;
+          switch(pattern){
+            case 1:
+              angle = Math.PI-Math.atan2(cgy-marker_y,cgx-marker_x);
+            break;
+            case 2:
+              if(robot.angle<-45){
+                angle = 2.5*Math.PI+Math.atan2(cgx-marker_x,cgy-marker_y);
+              } else {
+                angle = Math.PI+Math.atan2(marker_y-cgy,cgx-marker_x);
+              }
+            break;
+              angle = Math.PI+Math.atan2(cgy-marker_y,marker_x-cgx);
+            case 3:
+              angle = 2*Math.PI-Math.atan2(marker_y-cgy,marker_x-cgx);
+              break;
+            case 4:
+              angle = 2*Math.PI+Math.atan2(cgy-marker_y,marker_x-cgx);
+              break;
+          }
+          return angle*180/Math.PI;
         }
 
         function detectPattern(marker_x,marker_y,cgx,cgy,angle){
@@ -97,6 +119,10 @@
           } else if(marker_x-cgx>0 && cgy-marker_y>0){
             pattern = 4;
           }
+
+          robot.pattern = pattern;
+          robot.true_pattern = pattern;
+
           if(angle<-45){
             if(pattern==1) {
               pattern=3;
@@ -110,8 +136,9 @@
             else if(pattern==4) {
               pattern=3;
             }
+
+            robot.pattern = pattern;
           }
-          return pattern;
         }
 
         function drawMarker(){
@@ -139,68 +166,25 @@
 
           clearCanvas();
 
-          // if(angle<-45){
-          //   ctx.translate(x, y);
-          //   ctx.rotate( (angle-180) * Math.PI / 180 );
-          //   ctx.translate(-x, -y);
-          // }else {
-            ctx.translate(x, y);
-            ctx.rotate( angle * Math.PI / 180 );
-            ctx.translate(-x, -y);
-          // }
-
-          // if(angle<-45){
-          //   ctx.translate(x, y);
-          //   ctx.rotate( -180 * Math.PI / 180 );
-          //   offset_x = width*Math.sin((90+angle)*Math.PI/180);
-          //   offset_y = width*Math.cos((90+angle)*Math.PI/180);
-          //   console.log("offset");
-          //   console.log(offset_x,offset_y);
-          // }
+          ctx.translate(x, y);
+          ctx.rotate( angle * Math.PI / 180 );
+          ctx.translate(-x, -y);
 
           ctx.fillStyle = 'black';
           ctx.fillRect(x,y,width,height);
 
-          // if(angle<-45){
-          //   ctx.translate(-offset_x, -offset_y);
-          //   ctx.rotate( 180 * Math.PI / 180 );
-          //   ctx.translate(-x, -y);
-          // }
-
-          // if(angle<-45){
-            // offset_x = width*Math.sin((90+angle)*Math.PI/180);
-            // offset_y = width*Math.cos((90+angle)*Math.PI/180);
-          //   ctx.translate(x, y);
-          //   ctx.rotate( -(angle-180) * Math.PI / 180 );
-          //   ctx.translate(-x, -y);
-          // }else {
-            ctx.translate(x, y);
-            ctx.rotate( -angle * Math.PI / 180 );
-            ctx.translate(-x, -y);
-          // }
-
+          ctx.translate(x, y);
+          ctx.rotate( -angle * Math.PI / 180 );
+          ctx.translate(-x, -y);
 
           drawMarker();
           ctx.stroke(); 
           ctx.fill();
+
+          direction = computeAngleOfCenterAndMarker(robot.cgx,robot.cgy,robot.marker_x,robot.marker_y,robot.pattern)-130;
+
+          $("#direction").text(direction);
         }
-
-        // function computeOffset(x,y,cgx,cgy,angle){
-        //   cgx1 = cgx-x;
-        //   cgy1 = cgy-y;
-        //   r = Math.sqrt(cgx1*cgx1+cgy1*cgy1);
-        //   cgx2 = r*cos(angle*Math.PI/180);
-        //   cgy2 = r*sin(angle*Math.PI/180);
-        //   offset_x = cgx2 - cgx1;
-        //   offset_y = cgy2 - cgy1;
-        //   offset = {x:offset_x, y:offset_y};
-        //   return offset;
-        // }
-
-        // function updateLeftUpperPoint(points){
-        //   robot.x_ul = points[robot.upper_left_index].x;
-        //   robot.y_ul = points[robot.upper_left_index].y;
-        // }
 
         function computeCenterOfGravity(points){
           sumx = 0;
@@ -226,6 +210,7 @@
           $("#robot_height").text(robot.size.height);
           $("#robot_marker_x").text(robot.marker_x);
           $("#robot_marker_y").text(robot.marker_y);
+          $("#robot_pattern").text(robot.pattern);
         }
 
         function measureDistance(p1,p2){
@@ -292,54 +277,6 @@
         }
 
 
-        // function sortPointIndices(points,angle){
-        //   //1:Upper left, 2:Lower left, 3:Upper right, 4:Lower right
-        //   var upper_left_index;
-        //   var lower_left_index;
-        //   var upper_right_index;
-        //   var lower_right_index;
-
-        //     var x_with_index = [];
-        //     for (var i=0; i<points.length;i++) {
-        //       x_with_index.push([points[i].x, i]);
-        //     }
-
-        //     x_with_index.sort(function(left, right) {
-        //       return left[0] < right[0] ? -1 : 1;
-        //     });
-        //     var indices = [];
-        //     xs = [];
-
-        //     for (var j in x_with_index) {
-        //       xs.push(x_with_index[j][0]);
-        //       indices.push(x_with_index[j][1]);
-        //     }
-
-        //     left_indices = indices.slice(0,2);
-        //     right_indices = indices.slice(2,4);
-
-        //     if(points[left_indices[0]].y < points[left_indices[1]].y ){
-        //       upper_left_index = left_indices[0];
-        //       lower_left_index = left_indices[1];
-        //     } else {
-        //       upper_left_index = left_indices[1];
-        //       lower_left_index = left_indices[0];
-        //     }
-
-        //     if(points[right_indices[0]].y < points[right_indices[1]].y ){
-        //       upper_right_index = right_indices[0];
-        //       lower_right_index = right_indices[1];
-        //     } else {
-        //       upper_right_index = right_indices[1];
-        //       lower_right_index = right_indices[0];
-        //     }
-
-        //   robot.upper_left_index = upper_left_index;
-        //   robot.lower_left_index = lower_left_index;
-        //   robot.upper_right_index = upper_right_index;
-        //   robot.lower_right_index = lower_right_index;
-        // }
-
         socket.on('update_browser', function(msg){
           console.log(msg);
           robot.x_ul_prev = robot.x_ul;
@@ -354,11 +291,9 @@
           robot.marker_x = msg.marker_x;
           robot.marker_y = msg.marker_y;
 
-          // sortPointIndices(msg.points);
-          // updateLeftUpperPoint(robot.points);
 
           computeCenterOfGravity(robot.points);
-          robot.pattern = detectPattern(robot.marker_x,robot.marker_y,robot.cgx,robot.cgy,robot.angle);
+          detectPattern(robot.marker_x,robot.marker_y,robot.cgx,robot.cgy,robot.angle);
           detectLeftUpper(robot.pattern, robot.points,robot.marker_x,robot.marker_y);
 
           console.log(robot);
