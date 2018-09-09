@@ -2,7 +2,7 @@
   "name": "shapebots",
   "version": "1.0.0",
   "description": "ShapeBots: Shape-changing Swarm Robots",
-  "main": "sender.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,9 +17,7 @@
   },
   "homepage": "https://github.com/ryosuzuki/shapebots#readme",
   "dependencies": {
-    "delay": "^4.0.0",
     "express": "^4.16.3",
-    "merge-json": "0.1.0-b.3",
     "nan": "^2.11.0",
     "opencv": "^6.0.0",
     "serialport": "^7.0.2",

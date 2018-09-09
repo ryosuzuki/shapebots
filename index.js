@@ -6,18 +6,17 @@ var cv = require('opencv');
 var center_of_marker = {};
 var window;
 
-var SerialPort = require("serialport");
-var port = new SerialPort("/dev/tty.usbmodem1451", 
-  {
-    baudRate: 115200,
-  }
-);
+// var SerialPort = require("serialport");
+// var port = new SerialPort("/dev/tty.usbmodem1451", 
+//   {
+//     baudRate: 115200,
+//   }
+// );
 
 function detector(){
   try {
     var camera = new cv.VideoCapture(0);
-    // window = new cv.NamedWindow('Video', '400x400');
-    window = new cv.NamedWindow('Video', 1);
+    window = new cv.NamedWindow('Video', 0);
 
     setInterval(function() {
       camera.read(function(err, im) {
@@ -90,37 +89,34 @@ function computeCenterOfGravity(points){
   center_of_marker = {marker_x: cgx, marker_y: cgy};
 }
 
-function write_to_arduino(angle,distance){
-  command = "{\"angle\":\""+angle+"\",\"distance\":\""+distance+"\"}\n";
-  console.log(command);
-  port.write(command , function(err,bytesWritten){
-    if(err){
-      return console.log('Error: ',err.message);
-    }
-  });
-}
+// function write_to_arduino(angle,distance){
+//   command = "{\"angle\":\""+angle+"\",\"distance\":\""+distance+"\"}\n";
+//   console.log(command);
+//   port.write(command , function(err,bytesWritten){
+//     if(err){
+//       return console.log('Error: ',err.message);
+//     }
+//   });
+// }
 
-port.on('open', function () {
-  console.log("serial port open");
-});
+// port.on('open', function () {
+//   console.log("serial port open");
+// });
 
-port.on('data', function (data) {
-  console.log('Received: ' + data);
-});
+// port.on('data', function (data) {
+//   console.log('Received: ' + data);
+// });
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
 
 io.on('connection', function(socket){
-  // socket.on('update_val', function(data){
-  //   io.emit('update_browser', data);
-  // });
 
   detector();
 
   socket.on('update_position', function(data){
-    write_to_arduino(data.angle, data.distance); 
+    // write_to_arduino(data.angle, data.distance); 
   });
 });
 
