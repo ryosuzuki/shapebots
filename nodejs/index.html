@@ -1,0 +1,176 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Shapebot</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      #table {float: left;}
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.1/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  </head>
+  <body>
+
+    <canvas id="table" width="700" height="600" ></canvas>
+
+    <button id="update_pos">update position</button>
+    <script>
+      var socket = io();
+      $(function () {
+        var robot = new Robot();
+        var scale = 2;
+        var x0 = 0;
+        var y0 = 0;
+        var camera_width = 1024;
+        var camera_height= 768;
+        var table_width = 1024/scale;
+        var table_height = 768/scale;
+
+        var table = document.getElementById("table");
+        var ctx = table.getContext("2d");
+        ctx.rect(x0,x0,table_width,table_height);
+        ctx.stroke(); 
+
+        function clearCanvas(){
+          ctx.clearRect(x0,x0,table_width,table_height);
+        }
+
+        function Robot(){
+          this.angle = 0;
+          this.size = 0;
+          this.points = [];
+
+          this.angle_prev = 0;
+          this.size_prev = 0;
+          this.points_prev = [];
+
+          this.x_ul = 0;
+          this.y_ul = 0;
+          this.x_ul_prev = 0
+          this.y_ul_prev = 0;
+
+          this.upper_left_index = -1;
+          this.lower_left_index = -1;
+          this.upper_right_index = -1;
+          this.lower_right_index = -1;
+        }
+
+        function drawRobot(){
+          angle = robot.angle;
+          angle_prev = robot.angle_prev;
+          height_prev = robot.size_prev.height/scale;
+          width_prev = robot.size_prev.width/scale;
+          height = robot.size.height/scale;
+          width = robot.size.width/scale;
+          x = robot.x_ul/scale;
+          y = robot.y_ul/scale;
+          x_prev = robot.x_ul_prev/scale;
+          y_prev = robot.y_ul_prev/scale;
+          console.log('hi');
+          console.log(x_prev,y_prev,width_prev,height_prev,angle_prev);
+          console.log(x,y,width,height,angle);
+
+          clearCanvas();
+
+          ctx.rotate( angle * Math.PI / 180 );
+          ctx.fillRect(x,y,width,height);
+          ctx.stroke(); 
+          ctx.rotate( -angle * Math.PI / 180 );
+        }
+
+        function updateLeftUpperPoint(points){
+          robot.x_ul = points[robot.upper_left_index].x;
+          robot.y_ul = points[robot.upper_left_index].y;
+        }
+
+        function computeCenterOfGravity(points){
+          sumx = 0;
+          sumy = 0;
+          for(var i=0;i<points.length;i++){
+            sumx += points[i].x;
+            sumy += points[i].y;
+          }
+          cgx = sumx / points.length;
+          cgy = sumy / points.length;
+        }
+
+        function sortPointIndices(points){
+          //1:Upper left, 2:Lower left, 3:Upper right, 4:Lower right
+          var upper_left_index;
+          var lower_left_index;
+          var upper_right_index;
+          var lower_right_index;
+
+          var x_with_index = [];
+          for (var i=0; i<points.length;i++) {
+            x_with_index.push([points[i].x, i]);
+          }
+
+          x_with_index.sort(function(left, right) {
+            return left[0] < right[0] ? -1 : 1;
+          });
+          var indices = [];
+          xs = [];
+          for (var j in x_with_index) {
+            xs.push(x_with_index[j][0]);
+            indices.push(x_with_index[j][1]);
+          }
+
+          left_indices = indices.slice(0,2);
+          right_indices = indices.slice(2,4);
+
+          if(points[left_indices[0]].y < points[left_indices[1]].y ){
+            upper_left_index = left_indices[0];
+            lower_left_index = left_indices[1];
+            } else {
+            upper_left_index = left_indices[1];
+            lower_left_index = left_indices[0];
+          }
+
+          if(points[right_indices[0]].y < points[right_indices[1]].y ){
+            upper_right_index = right_indices[0];
+            lower_right_index = right_indices[1];
+            } else {
+            upper_right_index = right_indices[1];
+            lower_right_index = right_indices[0];
+          }
+
+          // console.log("upper left:",points[upper_left_index]);
+          // console.log("lower left:",points[lower_left_index]);
+          // console.log("upper right:",points[upper_right_index]);
+          // console.log("lower right:",points[lower_right_index]);
+          robot.upper_left_index = upper_left_index;
+          robot.lower_left_index = lower_left_index;
+          robot.upper_right_index = upper_right_index;
+          robot.lower_right_index = lower_right_index;
+        }
+
+        socket.on('update_browser', function(msg){
+          console.log(msg);
+          robot.x_ul_prev = robot.x_ul;
+          robot.x_ul_prev = robot.y_ul;
+          robot.angle_prev = robot.angle;
+          robot.size_prev = robot.size;
+          robot.points_prev = robot.points;
+
+          robot.angle = msg.angle;
+          robot.size = msg.size;
+          robot.points = msg.points;
+
+          sortPointIndices(msg.points);
+          updateLeftUpperPoint(robot.points);
+
+          drawRobot();
+        });
+
+        $("#update_pos").click(function(){
+          x = robot.x + 10;
+          y = robot.x + 10;
+          socket.emit('update_val', {x:x,y:y});
+        });
+      });
+
+    </script>
+  </body>
+</html>

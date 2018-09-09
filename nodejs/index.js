@@ -1,0 +1,97 @@
+var app = require('express')();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+var port = process.env.PORT || 3000;
+var cv = require('opencv');
+var center_of_marker = {};
+
+function detector(){
+  try {
+    var camera = new cv.VideoCapture(0);
+    var window = new cv.NamedWindow('Video', 0)
+
+    setInterval(function() {
+      camera.read(function(err, im) {
+        if (err) throw err;
+        console.log(im.size())
+        if (im.size()[0] > 0 && im.size()[1] > 0){
+          window.show(im);
+          var im2 = new cv.Matrix(im.width(),im.height());
+          im2 = im.clone();
+          findRedMarkerPoint(im);
+          findContour(im2); 
+        }
+        window.blockingWaitKey(0, 50);
+      });
+    }, 200);
+
+  } catch (e){
+    console.log("Couldn't start camera:", e)
+  }
+}
+
+function findContour(im){
+  im.cvtColor('CV_BGR2GRAY');
+  // var lower_threshold = [70, 70, 70];
+  var lower_threshold = [40, 40, 40];
+  var upper_threshold = [255,255,255];
+  im.inRange(lower_threshold, upper_threshold);
+  im.bitwiseNot(im);
+  var contours = im.findContours();
+  for(var c = 0; c < contours.size(); ++c) {
+    var rect= contours.minAreaRect(c)
+    if(rect.size.height>100 && rect.size.height>100){ 
+    	var data = Object.assign(rect, center_of_marker);
+    	console.log(data);
+    	io.emit('update_browser', data);
+    // console.log("Contour " + c);
+    // console.log(rect);
+	}
+  }
+}
+
+function findRedMarkerPoint(im){
+  im.cvtColor('CV_BGR2GRAY');
+  var lower_threshold = [0,0, 0]; 
+  // var upper_threshold = [60,100,255];
+  var upper_threshold = [60,80,255];
+  im.inRange(lower_threshold, upper_threshold);
+  im.bitwiseNot(im);
+  var contours = im.findContours();
+  // Access vertex data of contours
+  for(var c = 0; c < contours.size(); ++c) {
+    var rect= contours.minAreaRect(c)
+    if(rect.size.height<50 && rect.size.height>10){ 
+     computeCenterOfGravity(rect.points);
+    }
+  }
+};
+
+function computeCenterOfGravity(points){
+  sumx = 0;
+  sumy = 0;
+  for(var i=0;i<points.length;i++){
+    sumx += points[i].x;
+    sumy += points[i].y;
+  }
+  cgx = sumx / points.length;
+  cgy = sumy / points.length;
+  // console.log(cgx,cgy);
+  center_of_marker = {marker_x: cgx, marker_y: cgy};
+}
+
+app.get('/', function(req, res){
+  res.sendFile(__dirname + '/index.html');
+});
+
+io.on('connection', function(socket){
+  socket.on('update_val', function(data){
+    io.emit('update_browser', data);
+  });
+
+  detector();
+});
+
+http.listen(port, function(){
+  console.log('listening on *:' + port);
+});
