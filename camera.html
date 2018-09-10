@@ -3,7 +3,12 @@
 <head>
 </head>
 <body>
-  <pre id="positions"></pre>
+  Robots
+  <pre id="robots"></pre>
+  Markers
+  <pre id="markers"></pre>
+  Angles
+  <pre id="angles"></pre>
   <pre id="constraints"></pre>
   <pre id="pointer"></pre>
   <canvas id="canvas" width="1000" height="500"></canvas>
@@ -18,9 +23,26 @@
       window.rect = rect
     })
 
-    socket.on('robots:update', function (positions) {
-      window.positions = positions
-      $('#positions').text(JSON.stringify(positions))
+    socket.on('robots:update', function (robots) {
+      window.robots = robots
+      robots = robots.map((robot) => {
+        return { x: Math.floor(robot.x), y: Math.floor(robot.y) }
+      })
+      $('#robots').text(JSON.stringify(robots))
+    })
+
+    socket.on('markers:update', function (markers) {
+      window.markers = markers
+      markers = markers.map((marker) => {
+        return { x: Math.floor(marker.x), y: Math.floor(marker.y) }
+      })
+      $('#markers').text(JSON.stringify(markers))
+    })
+
+    socket.on('angles:update', function (angles) {
+      window.angles = angles
+      angles = angles.map((angle) => Math.floor(angle))
+      $('#angles').text(JSON.stringify(angles))
     })
 
     socket.on('constraints:update', function (positions) {
@@ -40,6 +62,7 @@
       show(data.buffer, 'canvas')
       show(data.bufferPanel, 'panel')
     })
+
 
     const show = (buffer, el) => {
       const canvas = document.getElementById(el)

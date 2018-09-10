@@ -1,29 +1,27 @@
 const _ = require('lodash')
 
-function detectRobots() {
-  this.positions = []
+function detectMarkers() {
+  this.markers = []
 
   this.min = this.redMin
   this.max = this.redMax
-
-  let val = 240 // white
-  this.min = [val, val, val]
-  this.max = [255, 255, 255]
+//
+//   let val = 255 // white
+//   this.min = [0, 255, 255]
+//   this.max = [80, 255, 255]
 
   let imCanny = this.im.copy()
-  imCanny.cvtColor('CV_BGR2GRAY')
+  imCanny.convertHSVscale()
+  // imCanny.cvtColor('CV_BGR2GRAY')
   imCanny.inRange(this.min, this.max)
-  imCanny.dilate(3)
-  imCanny.erode(2)
-
-  // this.im = imCanny
-  // return
+  // imCanny.dilate(3)
+  // imCanny.erode(2)
 
   let contours = imCanny.findContours()
-  let threshold = 1000
+  let threshold = 1
   let ids = []
+  // console.log(contours.size())
   for (let i = 0; i < contours.size(); i++) {
-    // console.log(contours.area(i))
     if (threshold > contours.area(i)) continue
 
     /*
@@ -51,9 +49,10 @@ function detectRobots() {
     positions.push(pos)
   }
 
+
   // console.log(positions)
-  this.positions = positions
-  this.socket.emit('robots:update', this.positions)
+  this.markers = positions
+  this.socket.emit('markers:update', this.markers)
 }
 
-module.exports = detectRobots
+module.exports = detectMarkers

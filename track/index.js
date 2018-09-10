@@ -5,6 +5,7 @@ const config = require('./config')
 const connect = require('./connect')
 const detectRect = require('./rect')
 const detectRobots = require('./robots')
+const detectMarkers = require('./markers')
 const detectConstraint = require('./constraint')
 const detectPointer = require('./pointer')
 const detectPanel = require('./panel')
@@ -36,6 +37,7 @@ class Track {
     this.connect = connect.bind(this)
     this.detectRect = detectRect.bind(this)
     this.detectRobots = detectRobots.bind(this)
+    this.detectMarkers = detectMarkers.bind(this)
     this.detectConstraint = detectConstraint.bind(this)
     this.detectPointer = detectPointer.bind(this)
     this.detectPanel = detectPanel.bind(this)
@@ -51,7 +53,9 @@ class Track {
         this.imPanel = im.copy()
 
         // this.detectRect()
+        this.detectMarkers()
         this.detectRobots()
+        this.computeAngles()
         /*
         if (this.ready) {
           this.warpWithRect('rect')
@@ -80,6 +84,35 @@ class Track {
 
       })
     }, this.cameraInterval)
+  }
+
+  computeAngles() {
+    this.angles = []
+    for (let i = 0; i < this.positions.length; i++) {
+      let pos = this.positions[i]
+      let marker = this.markers[i]
+
+      try {
+        let cx = pos.x
+        let cy = pos.y
+        let mx = marker.x
+        let my = marker.y
+
+        let dx = mx - cx
+        let dy = mx - cy
+        let angle = Math.atan2(dx, dy) * 180 / Math.PI
+        // var theta = Math.atan2(dy, dx); // range (-PI, PI]
+        // theta *= 180 / Math.PI; // rads to degs, range (-180, 180]
+        if (angle < 0) angle = 360 + angle // range [0, 360)
+
+        this.angles.push(angle)
+      }
+      catch(err) {
+
+      }
+    }
+
+    this.socket.emit('angles:update', this.angles)
   }
 
   start(socket) {
