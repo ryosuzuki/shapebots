@@ -22,7 +22,6 @@
   "dependencies": {
     "async": "^2.5.0",
     "body-parser": "^1.17.2",
-    "createjs": "github:ryosuzuki/createjs",
     "express": "^4.16.3",
     "glob": "^7.1.2",
     "jquery": "^3.2.1",
