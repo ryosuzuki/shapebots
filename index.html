@@ -15,7 +15,7 @@
     <canvas id="table" width="520" height="390" ></canvas>
 
     <div>
-     <p>Robot information</p> 
+     <p>Robot information</p>
      <p><b>angle: </b><span id="robot_angle"></span></p>
      <p><b>Upper left position: </b></p>
      <p><b>    x: </b><span id="robot_x"></span></p>
@@ -36,7 +36,7 @@
     <input id="distance" value="10" />
     <input id="angle" value="30" />
     <button id="send_arduino">send to Arduino</button>
-    
+
     <script>
       $(function () {
         var socket = io();
@@ -52,7 +52,7 @@
         var table = document.getElementById("table");
         var ctx = table.getContext("2d");
         ctx.rect(x0,x0,table_width,table_height);
-        ctx.stroke(); 
+        ctx.stroke();
 
         function clearCanvas(){
           ctx.clearRect(x0,x0,table_width,table_height);
@@ -88,7 +88,7 @@
             case 1:
               if(robot.angle<-45){
                 angle = Math.PI+Math.atan2(marker_y-cgy,cgx-marker_x);
-              } else{ 
+              } else{
                 angle = Math.PI-Math.atan2(cgy-marker_y,cgx-marker_x);
               }
             break;
@@ -181,7 +181,7 @@
           ctx.translate(-x, -y);
 
           drawMarker();
-          ctx.stroke(); 
+          ctx.stroke();
           ctx.fill();
 
           direction = computeAngleOfCenterAndMarker(robot.cgx,robot.cgy,robot.marker_x,robot.marker_y,robot.pattern)-130;
@@ -273,11 +273,16 @@
             }
             x_ul = points[indices[3]].x;
             y_ul = points[indices[3]].y;
-          } 
+          }
 
             robot.x_ul = x_ul;
             robot.y_ul = y_ul;
         }
+
+
+        socket.on('positions', function(msg){
+          console.log(msg);
+        });
 
 
         socket.on('update_browser', function(msg){

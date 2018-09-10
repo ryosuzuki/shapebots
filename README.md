@@ -54,7 +54,31 @@ brew link opencv@2 --force
 ```
 
 
+# Setup
 
+Use an external webcam, so in `/track/index.js`, we use `1` for the camera id. Use `0` for the internal camera.
+
+```js
+this.camera = new cv.VideoCapture(1) // <- for webcam
+```
+
+Also, the default set up is `background: black, robots: white`.
+Change the parameter in each file, if you want to change it.
+
+
+# Start
+Run `server.js` in one tab
+```
+node server.js
+```
+
+and run `websocket dev server` in another tab
+```
+npm start
+```
+
+Then, you can access to http://localhost:8080/camera.
+(I would recommend to use `nodemon` instead of `node` in the development state.)
 
 
 
