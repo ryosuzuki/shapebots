@@ -5,7 +5,7 @@ const config = {
   xSize: 16 * 5,
   ySize: 40,
   buffer: null,
-  redMin: [0, 130, 100],
+  redMin: [0, 100, 100],
   redMax: [100, 255, 255],
   blueMin: [70, 130, 140],
   blueMax: [170, 255, 255],

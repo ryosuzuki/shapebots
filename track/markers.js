@@ -5,18 +5,20 @@ function detectMarkers() {
 
   this.min = this.redMin
   this.max = this.redMax
-//
-//   let val = 255 // white
-//   this.min = [0, 255, 255]
-//   this.max = [80, 255, 255]
+
+  // let val = 255 // white
+  // this.min = [0, 255, 255]
+  // this.max = [80, 255, 255]
 
   let imCanny = this.im.copy()
   imCanny.convertHSVscale()
   // imCanny.cvtColor('CV_BGR2GRAY')
   imCanny.inRange(this.min, this.max)
-  imCanny.dilate(3)
-  imCanny.erode(2)
+  imCanny.dilate(10)
+  imCanny.erode(5)
 
+  // this.im = imCanny
+  // return
 
   let contours = imCanny.findContours()
   let threshold = 1
@@ -36,7 +38,7 @@ function detectMarkers() {
     ids.push(i)
   }
 
-  let positions = []
+  let markers = []
   for (let id of ids) {
     let pos = { x: 0, y: 0 }
     let count = contours.cornerCount(id)
@@ -47,12 +49,15 @@ function detectMarkers() {
     }
     pos.x /= count
     pos.y /= count
-    positions.push(pos)
+
+    pos.x = Math.round(pos.x)
+    pos.y = Math.round(pos.y)
+    markers.push(pos)
   }
 
 
   // console.log(positions)
-  this.markers = positions
+  this.markers = markers
   this.socket.emit('markers:update', this.markers)
 }
 

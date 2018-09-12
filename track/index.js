@@ -31,7 +31,7 @@ class Track {
   }
 
   init() {
-    this.camera = new cv.VideoCapture(0)
+    this.camera = new cv.VideoCapture(1)
     this.camera.setWidth(this.camWidth)
     this.camera.setHeight(this.camHeight)
     this.connect = connect.bind(this)
@@ -53,8 +53,8 @@ class Track {
         this.imPanel = im.copy()
 
         // this.detectRect()
-        this.detectMarkers()
         this.detectRobots()
+        this.detectMarkers()
         this.computeAngles()
         /*
         if (this.ready) {
@@ -87,9 +87,10 @@ class Track {
   }
 
   computeAngles() {
-    this.angles = []
-    for (let i = 0; i < this.positions.length; i++) {
-      let pos = this.positions[i]
+    let i = 0
+    for (let robot of this.robots) {
+      let pos = robot.pos
+      let angle = robot.angle
       let marker = this.markers[i]
 
       try {
@@ -102,41 +103,48 @@ class Track {
         let dy = my - cy
 
         const offset = 45 // initial angle when marker is upper left
-
-        var angle;
+        let newAngle
         if(dx<0&&dy<0){
           //marker is upper left
-          angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI - offset
+          // angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI - offset
+          newAngle = angle + 0
         } else if (dx<0&&dy>0){
           //marker is lower left
-          angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI + 90 - offset
+          // angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI + 90 - offset
+          newAngle = angle - 90
         } else if (dx>0&&dy>0){
-          //marker is lower right 
-          angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI + 180 - offset
+          //marker is lower right
+          // angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI + 180 - offset
+          newAngle = angle - 180
         } else if(dx>0&&dy<0){
           //marker is upper right
-          angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI + 270 - offset
+          // angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI + 270 - offset
+          newAngle = angle - 270
         }
 
         // let angle = Math.atan2(dx, dy) * 180 / Math.PI
         // var theta = Math.atan2(dy, dx); // range (-PI, PI]
         // theta *= 180 / Math.PI; // rads to degs, range (-180, 180]
         // if (angle < 0) angle = 360 + angle // range [0, 360)
+        robot.newAngle = newAngle
+        // this.angles.push(angle)
 
-        this.angles.push(angle)
+        this.robots[i] = robot
+        i++
       }
       catch(err) {
-
       }
     }
 
-    this.socket.emit('angles:update', this.angles)
+    this.socket.emit('robots:update', this.robots)
+    // this.socket.emit('angles:update', this.angles)
   }
 
   start(socket) {
     let connected = this.socket ? true : false
     this.socket = socket
     this.socket.on('update:pos', this.updatePos.bind(this))
+    this.socket.on('send:command', this.sendCommand.bind(this))
     if (!connected) {
       console.log('connect')
       // this.connect()
@@ -144,6 +152,26 @@ class Track {
     } else {
       console.log('already connected')
     }
+  }
+
+  sendCommand(json) {
+
+    const HOST = '192.168.1.97'
+    const PORT = 8883
+    const dgram = require('dgram')
+    const client = dgram.createSocket('udp4')
+
+    // type is 1: forward, 2: backward, 3: clockwise, 4: counterclockwise
+    // duration is delay time of the above command
+    // e.g.) json = { type: 1, duration: 400 }
+    console.log('hoge')
+    let str = JSON.stringify(json)
+    let message = new Buffer(str)
+    client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
+      if (err) throw err
+      console.log('sent')
+      client.close()
+    })
   }
 
   updatePos(data) {
@@ -160,4 +188,3 @@ class Track {
 }
 
 module.exports = Track
-

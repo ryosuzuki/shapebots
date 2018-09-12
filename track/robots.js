@@ -7,10 +7,10 @@ function detectRobots() {
   this.min = this.redMin
   this.max = this.redMax
 
-  if(process.env.USER='shohei'){
+  if(process.env.USER === 'shohei'){
     var val = 130// white
   } else {
-    var val = 200// white
+    var val = 180// white
   }
 
   this.min = [val, val, val]
@@ -19,8 +19,8 @@ function detectRobots() {
   let imCanny = this.im.copy()
   imCanny.cvtColor('CV_BGR2GRAY')
   imCanny.inRange(this.min, this.max)
-  imCanny.dilate(3)
-  imCanny.erode(2)
+  imCanny.dilate(10)
+  imCanny.erode(5)
 
   // this.im = imCanny
   // return
@@ -31,7 +31,6 @@ function detectRobots() {
   for (let i = 0; i < contours.size(); i++) {
     // console.log(contours.area(i))
     if (threshold > contours.area(i)) continue
-
     /*
     let arcLengh = contours.arcLength(i, true)
     let epsilon = 0.1 * arcLengh
@@ -43,7 +42,7 @@ function detectRobots() {
     ids.push(i)
   }
 
-  let positions = []
+  let robots = []
   for (let id of ids) {
     let pos = { x: 0, y: 0 }
     let count = contours.cornerCount(id)
@@ -54,12 +53,41 @@ function detectRobots() {
     }
     pos.x /= count
     pos.y /= count
-    positions.push(pos)
+
+    let rect = contours.minAreaRect(id)
+    // console.log(rect)
+    // rect = { angle: 0, size: { height: 10, width: 10 }, points: [ ... ] }
+    let angle = rect.angle
+    let size = rect.size
+
+    // console.log(rect)
+    let sumX = 0
+    let sumY = 0
+    for (let point of rect.points) {
+      sumX += point.x
+      sumY += point.y
+    }
+
+    let x = sumX / 4
+    let y = sumY / 4
+
+    let robot = {
+      pos: {
+        x: Math.round(x),
+        y: Math.round(y)
+      },
+      angle: Math.round(angle),
+      size: {
+        height: Math.round(size.height),
+        width: Math.round(size.width)
+      },
+    }
+    robots.push(robot)
   }
 
+  this.robots = robots
   // console.log(positions)
-  this.positions = positions
-  this.socket.emit('robots:update', this.positions)
+  // this.positions = positions
 }
 
 module.exports = detectRobots

@@ -22,6 +22,11 @@ app.get('/camera', (req, res) => {
   res.sendFile(path.join(__dirname + '/camera.html'))
 })
 
+app.get('/canvas', (req, res) => {
+  track.ready = false
+  res.sendFile(path.join(__dirname + '/canvas.html'))
+})
+
 app.get('/foo', (req, res) => {
   track.ready = false
   res.sendFile(path.join(__dirname + '/foo.html'))
