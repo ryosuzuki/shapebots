@@ -31,7 +31,7 @@ class Track {
   }
 
   init() {
-    this.camera = new cv.VideoCapture(1)
+    this.camera = new cv.VideoCapture(0)
     this.camera.setWidth(this.camWidth)
     this.camera.setHeight(this.camHeight)
     this.connect = connect.bind(this)
@@ -99,11 +99,29 @@ class Track {
         let my = marker.y
 
         let dx = mx - cx
-        let dy = mx - cy
-        let angle = Math.atan2(dx, dy) * 180 / Math.PI
+        let dy = my - cy
+
+        const offset = 45 // initial angle when marker is upper left
+
+        var angle;
+        if(dx<0&&dy<0){
+          //marker is upper left
+          angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI - offset
+        } else if (dx<0&&dy>0){
+          //marker is lower left
+          angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI + 90 - offset
+        } else if (dx>0&&dy>0){
+          //marker is lower right 
+          angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI + 180 - offset
+        } else if(dx>0&&dy<0){
+          //marker is upper right
+          angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI + 270 - offset
+        }
+
+        // let angle = Math.atan2(dx, dy) * 180 / Math.PI
         // var theta = Math.atan2(dy, dx); // range (-PI, PI]
         // theta *= 180 / Math.PI; // rads to degs, range (-180, 180]
-        if (angle < 0) angle = 360 + angle // range [0, 360)
+        // if (angle < 0) angle = 360 + angle // range [0, 360)
 
         this.angles.push(angle)
       }
