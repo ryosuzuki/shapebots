@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const { exec } = require('child_process');
 
 function detectRobots() {
   this.positions = []
@@ -6,7 +7,12 @@ function detectRobots() {
   this.min = this.redMin
   this.max = this.redMax
 
-  let val = 240 // white
+  if(process.env.USER='shohei'){
+    var val = 130// white
+  } else {
+    var val = 200// white
+  }
+
   this.min = [val, val, val]
   this.max = [255, 255, 255]
 

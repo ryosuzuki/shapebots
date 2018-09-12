@@ -14,8 +14,9 @@ function detectMarkers() {
   imCanny.convertHSVscale()
   // imCanny.cvtColor('CV_BGR2GRAY')
   imCanny.inRange(this.min, this.max)
-  // imCanny.dilate(3)
-  // imCanny.erode(2)
+  imCanny.dilate(3)
+  imCanny.erode(2)
+
 
   let contours = imCanny.findContours()
   let threshold = 1

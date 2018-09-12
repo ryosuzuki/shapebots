@@ -22,6 +22,10 @@ app.get('/camera', (req, res) => {
   res.sendFile(path.join(__dirname + '/camera.html'))
 })
 
+app.get('/foo', (req, res) => {
+  track.ready = false
+  res.sendFile(path.join(__dirname + '/foo.html'))
+})
 
 const server = http.Server(app)
 server.listen(4000, () => {
