@@ -84,11 +84,11 @@ class App extends Component {
           Markers
           <pre id="markers"></pre>
         </div>
-        <svg width="50%" height="300px">
-          { this.state.robots.map((robot) => {
+        <svg width="1000" height="1000">
+          { this.state.robots.map((robot, i) => {
             return (
               <Robot
-                id="1"
+                id={i}
                 x={robot.pos.x}
                 y={robot.pos.y}
                 angle={robot.angle}
