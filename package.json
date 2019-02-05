@@ -1,7 +1,7 @@
 {
-  "name": "shapebots",
+  "name": "swarm",
   "version": "1.0.0",
-  "description": "ShapeBots: Shape-changing Swarm Robots",
+  "description": "Simple Swarm Robots",
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server --hot --inline",
@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/ryosuzuki/shapebots.git"
+    "url": "git+ssh://git@github.com/ryosuzuki/swarm.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ryosuzuki/shapebots/issues"
+    "url": "https://github.com/ryosuzuki/swarm/issues"
   },
-  "homepage": "https://github.com/ryosuzuki/shapebots#readme",
+  "homepage": "https://github.com/ryosuzuki/swarm#readme",
   "dependencies": {
     "async": "^2.5.0",
     "body-parser": "^1.17.2",

@@ -1,11 +1,10 @@
-# ShapeBots
-ShapeBots: Shape-changing Swarm Robots
-
+# Swarm Robots
+Software and hardware for simple swarm robots
 
 # Installation
 
 ```
-git clone git@github.com:ryosuzuki/shapebots.git
+git clone git@github.com:ryosuzuki/swarm.git
 ```
 
 Use Node v8.11.4 and Python v2.7.8
@@ -79,19 +78,3 @@ npm start
 
 Then, you can access to http://localhost:8080/camera.
 (I would recommend to use `nodemon` instead of `node` in the development state.)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
