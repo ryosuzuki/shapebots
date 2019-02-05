@@ -11,6 +11,7 @@ Use Node v8.11.4 and Python v2.7.8
 
 ```
 nodebrew install-binary v8.11.4
+nodebrew use v8.11.4
 ```
 
 ```
