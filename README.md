@@ -7,52 +7,44 @@ Software and hardware for simple swarm robots
 git clone git@github.com:ryosuzuki/swarm.git
 ```
 
-Use Node v8.11.4 and Python v2.7.8
+Use Node v10.15.1 and Python v3.7.2
 
 ```
-nodebrew install-binary v8.11.4
-nodebrew use v8.11.4
+nodebrew install-binary v10.15.1
+nodebrew use v10.15.1
 ```
 
 ```
-pyenv install 2.7.8
+pyenv install 3.7.2
 ```
 
 ```
 $ node -v
-v8.11.4
+v10.15.1
 
 $ python --version
-Python 2.7.8
+Python 3.7.2
 ```
 
 ## Install OpenCV
 
 ```
 brew tap homebrew/science
-brew install opencv@2
-brew link --force opencv@2
+brew install opencv
 ```
 
-
-Test if you can install opencv successfully
 ```
-npm install opencv
-```
-
-When you get the following error like
-```
-npm install opencv fails with "node-pre-gyp install --fallback-to-build"
+pip install opencv-python
+pip install tornado
 ```
 
-Then, this [link](https://github.com/peterbraden/node-opencv/issues/472) was helpful. I was able to soleve this issue with
-
+Test OpenCV in Python console
 ```
-brew uninstall --force opencv
-brew reinstall opencv@2
-brew link opencv@2 --force
+python
+>>> import cv2
+>>> cv2.__version__
+'4.0.0'
 ```
-
 
 # Setup
 
@@ -67,9 +59,9 @@ Change the parameter in each file, if you want to change it.
 
 
 # Start
-Run `server.js` in one tab
+Run `server.py` in one tab
 ```
-node server.js
+python server.py
 ```
 
 and run `websocket dev server` in another tab
@@ -77,5 +69,4 @@ and run `websocket dev server` in another tab
 npm start
 ```
 
-Then, you can access to http://localhost:8080/camera.
-(I would recommend to use `nodemon` instead of `node` in the development state.)
+Then, you can access to http://localhost:8080/

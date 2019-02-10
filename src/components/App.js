@@ -4,7 +4,8 @@ import { bindActionCreators } from 'redux'
 import actions from '../redux/actions'
 import _ from 'lodash'
 
-const socket = io.connect('http://localhost:4000/')
+// const socket = io.connect('http://localhost:4000/')
+const socket = new WebSocket('ws://127.0.0.1:8080/ws');
 
 import Robot from './Robot'
 
@@ -16,9 +17,16 @@ class App extends Component {
     this.state = {
       robots: []
     }
-    this.socket.on('robots:update', this.updateRobots.bind(this))
-    // this.socket.on('markers:update', this.updateMarkers.bind(this))
-    this.socket.on('buffer', this.updateCamera.bind(this))
+    this.socket.onmessage = this.onMessage.bind(this)
+  }
+
+  componentDidMount() {
+    // this.frameId = requestAnimationFrame(this.animate)
+  }
+
+  onMessage(e) {
+    let data = JSON.parse(e.data)
+    this.updateCamera(data.image)
   }
 
   updateRobots(robots) {
@@ -26,8 +34,33 @@ class App extends Component {
     this.setState({ robots: robots })
   }
 
-  componentDidMount() {
-    this.frameId = requestAnimationFrame(this.animate)
+  updateCamera(src) {
+    const canvas = document.getElementById('canvas')
+    const context = canvas.getContext('2d')
+    const image = new Image()
+    image.src = 'data:image/png;base64,' + src
+    image.onload = () => {
+      context.drawImage(image, 0, 0, canvas.width, canvas.height)
+    }
+    /*
+    window.rect = data.rect
+    window.panel = data.panel
+    const buffer = data.bufferPanel
+    const uint8Arr = new Uint8Array(buffer);
+    const str = String.fromCharCode.apply(null, uint8Arr);
+    const base64String = btoa(str);
+    img.onload = function () {
+      context.drawImage(this, 0, 0, canvas.width, canvas.height)
+    }
+    img.src = 'data:image/png;base64,' + base64String
+    */
+  }
+
+  onClick(event) {
+    let type = $('#type').val()
+    let duration = $('#duration').val()
+    let command = { type: parseInt(type), duration: parseInt(duration) }
+    this.socket.emit('send:command', command)
   }
 
   stop() {
@@ -42,29 +75,6 @@ class App extends Component {
     this.props.store.dispatch(actions.updateState(state))
   }
 
-  updateCamera(data) {
-    window.rect = data.rect
-    window.panel = data.panel
-    const buffer = data.bufferPanel
-    const canvas = document.getElementById('canvas')
-    const context = canvas.getContext('2d')
-    const img = new Image()
-    const uint8Arr = new Uint8Array(buffer);
-    const str = String.fromCharCode.apply(null, uint8Arr);
-    const base64String = btoa(str);
-    img.onload = function () {
-      context.drawImage(this, 0, 0, canvas.width, canvas.height)
-    }
-    img.src = 'data:image/png;base64,' + base64String
-  }
-
-  onClick(event) {
-    let type = $('#type').val()
-    let duration = $('#duration').val()
-    let command = { type: parseInt(type), duration: parseInt(duration) }
-    this.socket.emit('send:command', command)
-  }
-
   render() {
     return (
       <div>
@@ -76,7 +86,7 @@ class App extends Component {
             <option value="4">Rotate (Counter Clockwise)</option>
           </select>
           <input type="text" id="duration" value="100"></input>
-          <button classname="ui basic button" onClick={this.onClick.bind(this)}>Send</button>
+          <button className="ui basic button" onClick={this.onClick.bind(this)}>Send</button>
         </div>
         <div>
           Robots

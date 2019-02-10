@@ -7,12 +7,12 @@ module.exports = {
     bundle: path.join(__dirname, '/src/index.js'),
   },
   output: {
-    path: path.join(__dirname, '/'),
+    path: path.join(__dirname, '/static'),
     filename: 'bundle.js',
-    publicPath: '/'
+    publicPath: '/static'
   },
   plugins: [
-    new webpack.HotModuleReplacementPlugin(),
+    // new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
     new webpack.ProvidePlugin({
       $: 'jquery',
@@ -45,14 +45,16 @@ module.exports = {
     watchContentBase: true,
     publicPath: '/',
     compress: true,
-    hot: true,
+    hot: false, // true
     inline: true,
     port: 8080,
+    /*
     proxy: {
       '**': {
         target: 'http://localhost:4000'
       }
     }
+    */
   },
   node: {
     fs: 'empty',
