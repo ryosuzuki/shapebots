@@ -34,7 +34,7 @@ class Track {
     this.camera = new cv.VideoCapture(1)
     this.camera.setWidth(this.camWidth)
     this.camera.setHeight(this.camHeight)
-    this.connect = connect.bind(this)
+    // this.connect = connect.bind(this)
     this.detectRect = detectRect.bind(this)
     this.detectRobots = detectRobots.bind(this)
     this.detectMarkers = detectMarkers.bind(this)
