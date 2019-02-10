@@ -14,13 +14,6 @@ import cv2
 from cv2 import aruco
 
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-ip = '192.168.27.111'
-port = 8883
-client.sendto(b'12345', (ip, port))
-
-
-
-
 
 fps = 1
 
@@ -90,6 +83,15 @@ class SocketHandler(websocket.WebSocketHandler):
     return data
     # cv2.imshow('Edited Frame', frame)
     # print('capture')
+
+  def on_message(self, message):
+    print(message)
+    message = json.loads(message)
+    ip = message['ip']
+    port = message['port']
+    command = message['command']
+    command = json.dumps(command).encode()
+    client.sendto(command, (ip, port))
 
   def on_close(self):
     self.cap.release()

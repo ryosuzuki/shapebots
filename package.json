@@ -21,7 +21,6 @@
   "dependencies": {
     "async": "^2.5.0",
     "body-parser": "^1.17.2",
-    "chrome-dgram": "^3.0.1",
     "dgram": "^1.0.1",
     "express": "^4.16.3",
     "glob": "^7.1.2",
