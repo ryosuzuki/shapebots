@@ -5,15 +5,19 @@
 #include <WiFiUDP.h>
 #include <ArduinoJson.h>
 
-const char *ssid = "research";
-const char *password = "Letmein!";
+//const char *ssid = "research";
+//const char *password = "Letmein!";
+const char *ssid = "HOME-5137";
+const char *password = "ryotomomi";
 unsigned int localPort = 8883;
 
 WiFiUDP UDP;
 char packetBuffer[255];
 
+/*
 static const char *udpReturnAddr = "192.168.27.111";
 static const int udpReturnPort = 8884;
+*/
 
 int cnt = 0;
 
@@ -92,16 +96,17 @@ void loop() {
 
     delay(duration);
     off();
-    
+
+    /*
     UDP.beginPacket(udpReturnAddr, udpReturnPort);
     UDP.write("ok");
     UDP.endPacket();
-
     cnt++;
     if (cnt % 1000 == 0) {
       UDP.beginPacket(udpReturnAddr, udpReturnPort);
       UDP.write("ok");
       UDP.endPacket();
     }
+    */    
   }
 }

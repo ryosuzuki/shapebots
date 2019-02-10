@@ -4,6 +4,7 @@ import sys
 import json
 import time
 import random
+import socket
 
 import numpy as np
 import tornado
@@ -11,6 +12,15 @@ from tornado import websocket, web, ioloop
 
 import cv2
 from cv2 import aruco
+
+client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+ip = '192.168.27.111'
+port = 8883
+client.sendto(b'12345', (ip, port))
+
+
+
+
 
 fps = 1
 

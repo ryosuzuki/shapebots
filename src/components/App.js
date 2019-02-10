@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import actions from '../redux/actions'
 import _ from 'lodash'
+import dgram from 'chrome-dgram'
 
 // const socket = io.connect('http://localhost:4000/')
 const socket = new WebSocket('ws://127.0.0.1:8080/ws');
@@ -42,25 +43,32 @@ class App extends Component {
     image.onload = () => {
       context.drawImage(image, 0, 0, canvas.width, canvas.height)
     }
-    /*
-    window.rect = data.rect
-    window.panel = data.panel
-    const buffer = data.bufferPanel
-    const uint8Arr = new Uint8Array(buffer);
-    const str = String.fromCharCode.apply(null, uint8Arr);
-    const base64String = btoa(str);
-    img.onload = function () {
-      context.drawImage(this, 0, 0, canvas.width, canvas.height)
-    }
-    img.src = 'data:image/png;base64,' + base64String
-    */
+  }
+
+  sendCommand(ip, command) {
+    const port = 8883
+    const client = dgram.createSocket('udp4')
+    let str = JSON.stringify(command)
+    let message = new Buffer(str)
+    client.send(message, 0, message.length, port, ip, (err, bytes) => {
+      if (err) throw err
+      client.close()
+    })
   }
 
   onClick(event) {
-    let type = $('#type').val()
-    let duration = $('#duration').val()
-    let command = { type: parseInt(type), duration: parseInt(duration) }
-    this.socket.emit('send:command', command)
+    // let type = $('#type').val()
+    // let duration = $('#duration').val()
+    // let command = { type: parseInt(type), duration: parseInt(duration) }
+
+    let forward = { a1: 1, a2: 0, b1: 0, b2: 1, duration: 100 }
+    let backward = { a1: 0, a2: 1, b1: 1, b2: 0, duration: 100 }
+    let right = { a1: 0, a2: 1, b1: 0, b2: 1, duration: 100 }
+    let left = { a1: 1, a2: 0, b1: 1, b2: 0, duration: 100 }
+
+    let ip = '192.168.27.111'
+    let command = forward
+    this.sendCommand(ip, command)
   }
 
   stop() {
@@ -78,15 +86,23 @@ class App extends Component {
   render() {
     return (
       <div>
-        <div className="ui inline form">
-          <select id="type">
-            <option value="1">Forward</option>
-            <option value="2">Backward</option>
-            <option value="3">Rotate (Clockwise)</option>
-            <option value="4">Rotate (Counter Clockwise)</option>
-          </select>
-          <input type="text" id="duration" value="100"></input>
-          <button className="ui basic button" onClick={this.onClick.bind(this)}>Send</button>
+        <div className="ui buttons">
+          <button className="ui button" onClick={this.onClick.bind(this, 'left')}>
+            <i className="left chevron icon"></i>
+            Left
+          </button>
+          <button className="ui button" onClick={this.onClick.bind(this, 'backward')}>
+            <i className="down chevron icon"></i>
+            Down
+          </button>
+          <button className="ui button" onClick={this.onClick.bind(this, 'forward')}>
+            <i className="up chevron icon"></i>
+            Up
+          </button>
+          <button className="ui button" onClick={this.onClick.bind(this, 'right')}>
+            <i className="right chevron icon"></i>
+            Right
+          </button>
         </div>
         <div>
           Robots

@@ -4,9 +4,8 @@
   "description": "Simple Swarm Robots",
   "main": "index.js",
   "scripts": {
-    "start": "webpack-dev-server --hot --inline",
+    "start": "webpack --color --progress --watch",
     "build": "webpack --color --progress",
-    "watch": "webpack --color --progress --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,6 +21,7 @@
   "dependencies": {
     "async": "^2.5.0",
     "body-parser": "^1.17.2",
+    "chrome-dgram": "^3.0.1",
     "dgram": "^1.0.1",
     "express": "^4.16.3",
     "glob": "^7.1.2",

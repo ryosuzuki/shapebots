@@ -12,7 +12,7 @@ module.exports = {
     publicPath: '/static'
   },
   plugins: [
-    // new webpack.HotModuleReplacementPlugin(),
+    new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
     new webpack.ProvidePlugin({
       $: 'jquery',
@@ -45,7 +45,7 @@ module.exports = {
     watchContentBase: true,
     publicPath: '/',
     compress: true,
-    hot: false, // true
+    hot: false,
     inline: true,
     port: 8080,
     /*
