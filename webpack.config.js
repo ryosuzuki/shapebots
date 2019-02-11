@@ -47,13 +47,6 @@ module.exports = {
     hot: false,
     inline: true,
     port: 8080,
-    /*
-    proxy: {
-      '**': {
-        target: 'http://localhost:4000'
-      }
-    }
-    */
   },
   node: {
     fs: 'empty',

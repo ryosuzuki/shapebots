@@ -14,7 +14,9 @@ class App extends Component {
     window.app = this
     this.socket = socket
     this.state = {
-      robots: []
+      robots: [],
+      ids: [],
+      corners: [],
     }
     this.socket.onmessage = this.onMessage.bind(this)
   }
@@ -26,10 +28,28 @@ class App extends Component {
   onMessage(e) {
     let data = JSON.parse(e.data)
     this.updateCamera(data.image)
+    this.updateRobots(data.ids, data.corners)
   }
 
-  updateRobots(robots) {
-    console.log('update')
+  updateRobots(ids, corners) {
+    let robots = []
+    let i = 0
+    for (let id of ids) {
+      let robot = {}
+      robot.id = id[0]
+      let points = corners[i][0]
+      let x = _.sum(points.map((point) => {
+        return point[0]
+      })) / 4
+      let y = _.sum(points.map((point) => {
+        return point[1]
+      })) / 4
+      robot.points = points
+      robot.pos = { x: x, y: y }
+      robot.angle = 0
+      robots.push(robot)
+      i++
+    }
     this.setState({ robots: robots })
   }
 
@@ -75,7 +95,6 @@ class App extends Component {
     let message = { command: command, ip: ip, port: port }
     let str = JSON.stringify(message)
     this.socket.send(str)
-    // this.sendCommand(ip, command)
   }
 
   stop() {
@@ -112,6 +131,10 @@ class App extends Component {
           </button>
         </div>
         <div>
+          <pre id="ids">{ JSON.stringify(this.state.ids) }</pre>
+          <pre id="corners">{ JSON.stringify(this.state.corners) }</pre>
+        </div>
+        <div>
           Robots
           <pre id="robots">{ JSON.stringify(this.state.robots) }</pre>
           Markers
@@ -121,7 +144,7 @@ class App extends Component {
           { this.state.robots.map((robot, i) => {
             return (
               <Robot
-                id={i}
+                id={robot.id}
                 x={robot.pos.x}
                 y={robot.pos.y}
                 angle={robot.angle}

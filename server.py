@@ -9,6 +9,9 @@ import socket
 import numpy as np
 import tornado
 from tornado import websocket, web, ioloop
+import tornado.autoreload
+
+
 
 import cv2
 from cv2 import aruco
@@ -66,10 +69,8 @@ class SocketHandler(websocket.WebSocketHandler):
     period = 1 / fps
     self.ioloop.add_timeout(time.time() + period, self.send)
     if self.ws_connection:
-      image = self.capture()
-      message = json.dumps({
-        'image': image
-      })
+      result = self.capture()
+      message = json.dumps(result)
       self.write_message(message)
 
   def capture(self):
@@ -79,10 +80,18 @@ class SocketHandler(websocket.WebSocketHandler):
     frame = aruco.drawDetectedMarkers(frame, rejectedImgPoints, borderColor=(0, 255, 0))
     frame = cv2.resize(frame, (int(frame.shape[1]/2), int(frame.shape[0]/2)))
     ret, buffer = cv2.imencode('.jpg', frame)
-    data = base64.b64encode(buffer).decode('utf-8')
-    return data
-    # cv2.imshow('Edited Frame', frame)
-    # print('capture')
+    image = base64.b64encode(buffer).decode('utf-8')
+    if ids is None:
+      ids = np.array([])
+    ids = ids.tolist()
+    corners = np.array(corners)
+    corners = corners.tolist()
+    result = {
+      'ids': ids,
+      'corners': corners,
+      'image': image,
+    }
+    return result
 
   def on_message(self, message):
     print(message)
@@ -107,7 +116,7 @@ def main():
   app = tornado.web.Application([
     (r'/', HttpHandler),
     (r'/ws', SocketHandler),
-  ], static_path='static')
+  ], static_path='static', debug=True)
   print('start web server at localhost:8080')
   app.listen(8080)
   tornado.ioloop.IOLoop.current().start()
