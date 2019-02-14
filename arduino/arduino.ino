@@ -5,10 +5,10 @@
 #include <WiFiUDP.h>
 #include <ArduinoJson.h>
 
-//const char *ssid = "research";
-//const char *password = "Letmein!";
-const char *ssid = "HOME-5137";
-const char *password = "ryotomomi";
+const char *ssid = "research";
+const char *password = "Letmein!";
+//const char *ssid = "HOME-5137";
+//const char *password = "ryotomomi";
 unsigned int localPort = 8883;
 
 WiFiUDP UDP;

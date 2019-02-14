@@ -1,5 +1,5 @@
 // const HOST = '192.168.27.45'
-const HOST = '10.0.0.105' // '192.168.27.111'
+const HOST = '192.168.27.111' // '10.0.0.105'
 const PORT = 8883
 
 let forward = { a1: 1, a2: 0, b1: 0, b2: 1, duration: 100 }
