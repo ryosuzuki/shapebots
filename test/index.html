@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.7/semantic.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+
+  <style type="text/css">
+    body {
+      margin-top: 100px;
+    }
+  </style>
+
+  <script type="text/javascript">
+    const socket = io()
+
+    socket.emit('message', 'hello world')
+  </script>
+</head>
+<body>
+  <div class="ui text container">
+    <h1 class="ui center aligned dividing header">ShapeBots Test</h1>
+
+    <br/>
+
+    <div class="ui form">
+      <div class="field">
+        <label>IP Address</label>
+        <select class="ui search dropdown">
+          <option value="">Select IP Address</option>
+          <option value="192.168.27.45">192.168.27.45</option>
+          <option value="192.168.27.78">192.168.27.78</option>
+          <option value="192.168.27.111">192.168.27.111</option>
+          <option value="192.168.27.138">192.168.27.138</option>
+          <option value="192.168.27.164">192.168.27.164</option>
+        </select>
+      </div>
+
+      <br/>
+
+      <div class="field">
+        <label>Move Robot</label>
+        <div class="ui animated button">
+          <div class="visible content">Left</div>
+          <div class="hidden content">
+            <i class="left arrow icon"></i>
+          </div>
+        </div>
+        <div class="ui vertical animated button">
+          <div class="visible content">Forward</div>
+          <div class="hidden content">
+            <i class="up arrow icon"></i>
+          </div>
+        </div>
+        <div class="ui vertical animated button">
+          <div class="visible content">Backward</div>
+          <div class="hidden content">
+            <i class="down arrow icon"></i>
+          </div>
+        </div>
+        <div class="ui animated button">
+          <div class="visible content">Right</div>
+          <div class="hidden content">
+            <i class="right arrow icon"></i>
+          </div>
+        </div>
+      </div>
+
+      <br/>
+
+      <div class="field">
+        <label>Actuate Reel</label>
+        <select class="ui search dropdown">
+          <option value="">Select Target Length</option>
+          <option value="0">0</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+          <option value="300">300</option>
+          <option value="400">400</option>
+          <option value="500">500</option>
+          <option value="600">600</option>
+          <option value="700">700</option>
+          <option value="800">800</option>
+        </select>
+      </div>
+
+
+  </div>
+</body>
+</html>

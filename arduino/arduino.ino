@@ -12,7 +12,7 @@ IPAddress myIP;
 char packetBuffer[255];
 int cnt = 0;
 int current = 0;
-int maximum = 2000;
+int maximum = 800;
 
 void setup() {
   pinMode (a1, OUTPUT);
@@ -101,6 +101,10 @@ void actuate(int pos) {
         break;
       }
       if (digitalRead(s1) != 0) {
+        pause();
+        delay(100);
+        up();
+        delay(300);
         current = 0;
         break;
       }
@@ -124,6 +128,13 @@ void down() {
   digitalWrite(c2, LOW);
   digitalWrite(d1, HIGH);
   digitalWrite(d2, LOW);
+}
+
+void pause() {
+  digitalWrite(c1, HIGH);
+  digitalWrite(c2, HIGH);
+  digitalWrite(d1, HIGH);
+  digitalWrite(d2, HIGH);  
 }
 
 void loop() {
