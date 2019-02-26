@@ -4,53 +4,46 @@
 #include <ESP8266mDNS.h>
 #include <WiFiUDP.h>
 #include <ArduinoJson.h>
-
-const char *ssid = "research";
-const char *password = "Letmein!";
-//const char *ssid = "HOME-5137";
-//const char *password = "ryotomomi";
-unsigned int localPort = 8883;
+#include "config.h"
 
 WiFiUDP UDP;
+IPAddress myIP;
+
 char packetBuffer[255];
-
-/*
-static const char *udpReturnAddr = "192.168.27.111";
-static const int udpReturnPort = 8884;
-*/
-
 int cnt = 0;
-
-// Custom
-int a1 = 5;
-int a2 = 4;
-int b1 = 16;
-int b2 = 14;
+int current = 0;
+int maximum = 2000;
 
 void setup() {
-  pinMode (a1, OUTPUT );
-  pinMode (a2, OUTPUT );
-  pinMode (b1, OUTPUT );
-  pinMode (b2, OUTPUT );
+  pinMode (a1, OUTPUT);
+  pinMode (a2, OUTPUT);
+  pinMode (b1, OUTPUT);
+  pinMode (b2, OUTPUT);
+
+  pinMode (c1, OUTPUT);
+  pinMode (c2, OUTPUT);
+  pinMode (d1, OUTPUT);
+  pinMode (d2, OUTPUT);
+
+  pinMode(s1, INPUT);
 
   Serial.begin (9600);
   delay(10);
 
   // Connect WiFi
   Serial.println();
-  Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.hostname("Name");
   WiFi.begin(ssid, password);
- 
+
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
   Serial.println("");
   Serial.println("WiFi connected");
- 
+
   // Print the IP address
   Serial.print("IP address: ");
   Serial.print(WiFi.localIP());
@@ -61,7 +54,7 @@ void setup() {
     Serial.println ("MDNS responder started");
   }
 
-  IPAddress myIP = WiFi.localIP();
+  myIP = WiFi.localIP();
   Serial.print("AP IP address: ");
   Serial.println(myIP);
   UDP.begin(localPort);
@@ -74,9 +67,67 @@ void off() {
   digitalWrite(a2, LOW);
   digitalWrite(b1, LOW);
   digitalWrite(b2, LOW);
+
+  digitalWrite(c1, LOW);
+  digitalWrite(c2, LOW);
+  digitalWrite(d1, LOW);
+  digitalWrite(d2, LOW);
+}
+
+void initialize() {
+  while(true) {
+    down();
+    if (digitalRead(s1) != 0) {
+       break;
+    }
+  }
+  current = 0;
+}
+
+void actuate(int pos) {
+  if (pos > current) {
+    while(true) {
+      if (current >= pos || current >= maximum) {
+        break;
+      }
+      up();
+      current = current + 1;
+      Serial.println(current);
+      delay(1);
+    }
+  } else {
+    while(true) {
+      if (current <= pos) {
+        break;
+      }
+      if (digitalRead(s1) != 0) {
+        current = 0;
+        break;
+      }
+      down();
+      current = current - 1;
+      Serial.println(current);
+      delay(1);
+    }
+  }
+}
+
+void up() {
+  digitalWrite(c1, LOW);
+  digitalWrite(c2, HIGH);
+  digitalWrite(d1, LOW);
+  digitalWrite(d2, HIGH);
+}
+
+void down() {
+  digitalWrite(c1, HIGH);
+  digitalWrite(c2, LOW);
+  digitalWrite(d1, HIGH);
+  digitalWrite(d2, LOW);
 }
 
 void loop() {
+  
   int packetSize = UDP.parsePacket();
   if (packetSize) {
     int len = UDP.read(packetBuffer, packetSize);
@@ -87,26 +138,29 @@ void loop() {
     JsonObject& root = jsonBuffer.parseObject(json);
 
     int duration = root["duration"];
-    Serial.println(duration);
+    int pos = root["pos"];
 
-    if (root["a1"] > 0) digitalWrite(a1, HIGH);
-    if (root["a2"] > 0) digitalWrite(a2, HIGH);
-    if (root["b1"] > 0) digitalWrite(b1, HIGH);
-    if (root["b2"] > 0) digitalWrite(b2, HIGH);
+    if (duration) {
+      if (root["a1"] > 0) digitalWrite(a1, HIGH);
+      if (root["a2"] > 0) digitalWrite(a2, HIGH);
+      if (root["b1"] > 0) digitalWrite(b1, HIGH);
+      if (root["b2"] > 0) digitalWrite(b2, HIGH);
+      delay(duration);
+      off();
+    }
 
-    delay(duration);
-    off();
+    if (pos) {
+      actuate(pos);
+      off();
+    }
 
     /*
-    UDP.beginPacket(udpReturnAddr, udpReturnPort);
+    UDP.beginPacket("0.0.0.0", 8884);
     UDP.write("ok");
     UDP.endPacket();
-    cnt++;
-    if (cnt % 1000 == 0) {
-      UDP.beginPacket(udpReturnAddr, udpReturnPort);
-      UDP.write("ok");
-      UDP.endPacket();
-    }
-    */    
+    */
+
   }
+
+
 }
