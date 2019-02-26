@@ -15,8 +15,41 @@
 
   <script type="text/javascript">
     const socket = io()
+    $(() => {
+      let ip
 
-    socket.emit('message', 'hello world')
+      $('#ip-address').change((e) => {
+        ip = $(e.currentTarget).val()
+        console.log(ip)
+      })
+      $('.button').click((e) => {
+        let dir = $(e.currentTarget).attr('id')
+        console.log(dir)
+        move(dir)
+      })
+      $('#actuator').change((e) => {
+        let pos = $(e.currentTarget).val()
+        console.log(pos)
+        actuate(pos)
+      })
+
+      const move = (dir) => {
+        let json = { ip: ip, dir: dir }
+        let message = JSON.stringify(json)
+        socket.emit('move', message)
+      }
+
+      const actuate = (pos) => {
+        let json = { ip: ip, pos: pos }
+        let message = JSON.stringify(json)
+        socket.emit('actuate', message)
+      }
+
+    })
+
+
+
+
   </script>
 </head>
 <body>
@@ -28,7 +61,7 @@
     <div class="ui form">
       <div class="field">
         <label>IP Address</label>
-        <select class="ui search dropdown">
+        <select id="ip-address" class="ui search dropdown">
           <option value="">Select IP Address</option>
           <option value="192.168.27.45">192.168.27.45</option>
           <option value="192.168.27.78">192.168.27.78</option>
@@ -42,25 +75,25 @@
 
       <div class="field">
         <label>Move Robot</label>
-        <div class="ui animated button">
+        <div id="left" class="ui animated button">
           <div class="visible content">Left</div>
           <div class="hidden content">
             <i class="left arrow icon"></i>
           </div>
         </div>
-        <div class="ui vertical animated button">
+        <div id="forward" class="ui vertical animated button">
           <div class="visible content">Forward</div>
           <div class="hidden content">
             <i class="up arrow icon"></i>
           </div>
         </div>
-        <div class="ui vertical animated button">
+        <div id="backward" class="ui vertical animated button">
           <div class="visible content">Backward</div>
           <div class="hidden content">
             <i class="down arrow icon"></i>
           </div>
         </div>
-        <div class="ui animated button">
+        <div id="right" class="ui animated button">
           <div class="visible content">Right</div>
           <div class="hidden content">
             <i class="right arrow icon"></i>
@@ -72,9 +105,9 @@
 
       <div class="field">
         <label>Actuate Reel</label>
-        <select class="ui search dropdown">
+        <select id="actuator" class="ui search dropdown">
           <option value="">Select Target Length</option>
-          <option value="0">0</option>
+          <option value="-300">0</option>
           <option value="100">100</option>
           <option value="200">200</option>
           <option value="300">300</option>
