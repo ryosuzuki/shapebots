@@ -5,6 +5,8 @@ const socketio = require('socket.io')
 const app = express()
 const bodyParser = require('body-parser')
 const dgram = require('dgram')
+const { PythonShell } = require('python-shell')
+
 
 app.use(bodyParser.json())
 app.use('/', express.static(__dirname))
@@ -17,9 +19,22 @@ server.listen(8080, () => {
   console.log('listening 8080')
 })
 
+/*
+const shell = new PythonShell('./camera.py', {
+  mode: 'text'
+})
+*/
+
 const io = socketio(server)
 io.on('connection', (socket) => {
   console.log('socket connected')
+
+  /*
+  shell.on('message', data => {
+    socket.emit('message', data)
+  })
+  shell.end()
+  */
 
   socket.on('move', (data) => {
     console.log(data)

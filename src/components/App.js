@@ -19,6 +19,9 @@ class App extends Component {
       corners: [],
     }
     this.socket.onmessage = this.onMessage.bind(this)
+
+    this.width = 1920
+    this.height = 1080
   }
 
   componentDidMount() {
@@ -45,8 +48,12 @@ class App extends Component {
         return point[1]
       })) / 4
       robot.points = points
-      robot.pos = { x: x, y: y }
-      robot.angle = 0
+      robot.pos = { x: x, y: y}
+
+      let a1 = Math.atan2(points[0][0] - points[2][0], points[0][1] - points[2][1]) * 180 / Math.PI
+      // let a2 = Math.atan2(points[1][0] - points[3][0], points[1][1] - points[3][1]) * 180 / Math.PI
+      let angle = (a1 + 360 + 135) % 360 // (a1 + a2) / 2
+      robot.angle = angle
       robots.push(robot)
       i++
     }
@@ -67,31 +74,6 @@ class App extends Component {
   }
 
   onClick(type, event) {
-    let forward = { a1: 1, a2: 0, b1: 0, b2: 1, duration: 100 }
-    let backward = { a1: 0, a2: 1, b1: 1, b2: 0, duration: 100 }
-    let right = { a1: 0, a2: 1, b1: 0, b2: 1, duration: 100 }
-    let left = { a1: 1, a2: 0, b1: 1, b2: 0, duration: 100 }
-
-    let ip = '10.0.0.105' // '192.168.27.111'
-    let port = 8883
-    let command
-    switch (type) {
-      case 'up':
-        command = forward
-        break
-      case 'down':
-        command = backward
-        break
-      case 'left':
-        command = left
-        break
-      case 'right':
-        command = right
-        break
-      default:
-        console.log('press arrow key')
-    }
-
     let message = { command: command, ip: ip, port: port }
     let str = JSON.stringify(message)
     this.socket.send(str)
@@ -112,47 +94,31 @@ class App extends Component {
   render() {
     return (
       <div>
-        <div className="ui buttons">
-          <button className="ui button" onClick={this.onClick.bind(this, 'left')}>
-            <i className="left chevron icon"></i>
-            Left
-          </button>
-          <button className="ui button" onClick={this.onClick.bind(this, 'down')}>
-            <i className="down chevron icon"></i>
-            Down
-          </button>
-          <button className="ui button" onClick={this.onClick.bind(this, 'up')}>
-            <i className="up chevron icon"></i>
-            Up
-          </button>
-          <button className="ui button" onClick={this.onClick.bind(this, 'right')}>
-            <i className="right chevron icon"></i>
-            Right
-          </button>
+        <div className="ui grid">
+          <div className="twelve wide column">
+            <canvas id="canvas" width={ this.width / 2 } height={ this.height / 2 }></canvas>
+            <svg id="svg" width={ this.width / 2 } height={ this.height / 2 }>
+              { this.state.robots.map((robot, i) => {
+                return (
+                  <Robot
+                    id={robot.id}
+                    x={robot.pos.x}
+                    y={robot.pos.y}
+                    angle={robot.angle}
+                  />
+                )
+              })}
+            </svg>
+          </div>
+          <div className="four wide column">
+            <div>
+              Robots
+              <pre id="robots">{ JSON.stringify(this.state.robots, null, 2) }</pre>
+              Markers
+              <pre id="markers"></pre>
+            </div>
+          </div>
         </div>
-        <div>
-          <pre id="ids">{ JSON.stringify(this.state.ids) }</pre>
-          <pre id="corners">{ JSON.stringify(this.state.corners) }</pre>
-        </div>
-        <div>
-          Robots
-          <pre id="robots">{ JSON.stringify(this.state.robots) }</pre>
-          Markers
-          <pre id="markers"></pre>
-        </div>
-        <svg width="1000" height="1000">
-          { this.state.robots.map((robot, i) => {
-            return (
-              <Robot
-                id={robot.id}
-                x={robot.pos.x}
-                y={robot.pos.y}
-                angle={robot.angle}
-              />
-            )
-          })}
-        </svg>
-        <canvas id="canvas" width="1000" height="500"></canvas>
       </div>
     )
   }
@@ -173,3 +139,4 @@ function mapDispatchToProps(dispatch) {
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(App)
+

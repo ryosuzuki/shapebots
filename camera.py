@@ -50,7 +50,7 @@ while True:
   cv2.imshow('Edited Frame', frame)
 
   ret, buffer = cv2.imencode('.jpg', frame)
-  image = base64.b64encode(buffer).decode('utf-8')
+  # image = base64.b64encode(buffer).decode('utf-8')
   if ids is None:
     ids = np.array([])
   ids = ids.tolist()
@@ -59,9 +59,9 @@ while True:
   result = {
     'ids': ids,
     'corners': corners,
-    'image': image,
+    # 'image': image,
   }
-  # print(json.dumps(result))
+  print(json.dumps(result))
 
   k = cv2.waitKey(30)
   if k == 27:

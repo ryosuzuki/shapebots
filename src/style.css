@@ -1,0 +1,10 @@
+
+#svg {
+  position: absolute;
+  background: white;
+  opacity: 0.6;
+}
+
+#canvas {
+  position: absolute;
+}

@@ -11,42 +11,12 @@ import tornado
 from tornado import websocket, web, ioloop
 import tornado.autoreload
 
-
-
 import cv2
 from cv2 import aruco
 
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 fps = 1
-
-dictionary_name = aruco.DICT_4X4_50
-dictionary = aruco.getPredefinedDictionary(dictionary_name)
-
-parameters = aruco.DetectorParameters_create()
-
-# Thresholding
-parameters.adaptiveThreshWinSizeMin = 3 # >= 3
-parameters.adaptiveThreshWinSizeStep = 10 # 10
-parameters.adaptiveThreshConstant = 7 # 7
-
-# Contour Filtering
-parameters.minMarkerPerimeterRate = 0.03 # 0.03
-parameters.maxMarkerPerimeterRate = 0.1 # 4.0
-parameters.minCornerDistanceRate = 0.2 # 0.05
-parameters.minMarkerDistanceRate = 0.3 # 0.05
-parameters.minDistanceToBorder = 5 # 3
-
-# Bits Extraction
-parameters.markerBorderBits = 1 # 1
-parameters.minOtsuStdDev = 5.0 # 5.0
-parameters.perspectiveRemoveIgnoredMarginPerCell = 0.4 # 0.13
-# parameters.perpectiveRemovePixelPerCell = 10 # 4
-
-# Marker Identification
-parameters.maxErroneousBitsInBorderRate = 0.6 # 0.35
-parameters.errorCorrectionRate = 2.8 # 0.6
-
 
 class HttpHandler(web.RequestHandler):
   def get(self):
@@ -61,6 +31,7 @@ class SocketHandler(websocket.WebSocketHandler):
     self.cap.set(cv2.CAP_PROP_FPS, fps)
     w = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     h = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    print(w, h)
     print(self.request.remote_ip, ': connection opened')
     self.ioloop = tornado.ioloop.IOLoop.instance()
     self.send()
@@ -75,6 +46,7 @@ class SocketHandler(websocket.WebSocketHandler):
 
   def capture(self):
     ret, frame = self.cap.read()
+    dictionary, parameters = self.config()
     corners, ids, rejectedImgPoints = aruco.detectMarkers(frame, dictionary, parameters=parameters)
     frame = aruco.drawDetectedMarkers(frame, corners, ids, borderColor=(0, 0, 255))
     frame = aruco.drawDetectedMarkers(frame, rejectedImgPoints, borderColor=(0, 255, 0))
@@ -111,6 +83,32 @@ class SocketHandler(websocket.WebSocketHandler):
 
   def check_origin(self, origin):
     return True
+
+  def config(self):
+    dictionary_name = aruco.DICT_4X4_50
+    dictionary = aruco.getPredefinedDictionary(dictionary_name)
+
+    parameters = aruco.DetectorParameters_create()
+    # Thresholding
+    parameters.adaptiveThreshWinSizeMin = 3 # >= 3
+    parameters.adaptiveThreshWinSizeStep = 10 # 10
+    parameters.adaptiveThreshConstant = 7 # 7
+    # Contour Filtering
+    parameters.minMarkerPerimeterRate = 0.03 # 0.03
+    parameters.maxMarkerPerimeterRate = 0.1 # 4.0
+    parameters.minCornerDistanceRate = 0.2 # 0.05
+    parameters.minMarkerDistanceRate = 0.3 # 0.05
+    parameters.minDistanceToBorder = 5 # 3
+    # Bits Extraction
+    parameters.markerBorderBits = 1 # 1
+    parameters.minOtsuStdDev = 5.0 # 5.0
+    parameters.perspectiveRemoveIgnoredMarginPerCell = 0.4 # 0.13
+    # parameters.perpectiveRemovePixelPerCell = 10 # 4
+    # Marker Identification
+    parameters.maxErroneousBitsInBorderRate = 0.6 # 0.35
+    parameters.errorCorrectionRate = 2.8 # 0.6
+
+    return dictionary, parameters
 
 def main():
   app = tornado.web.Application([
