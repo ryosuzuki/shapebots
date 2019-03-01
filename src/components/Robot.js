@@ -21,7 +21,7 @@ class Robot extends Component {
     this.angle = this.props.angle
 
     return(
-      <g id={this.props.id} key={this.props.id}>
+      <g id={this.props.id}>
         <g
           className="block"
           onMouseDown={this.onMouseDown.bind(this)}
@@ -46,10 +46,10 @@ class Robot extends Component {
             id: {this.props.id}
           </text>
           <text x={this.x + 5} y={this.y + 10} className="label">
-            x: {this.props.x}, y: {this.props.y}
+            x: {parseInt(this.props.x)}, y: {parseInt(this.props.y)}
           </text>
           <text x={this.x + 5} y={this.y + 30} className="label">
-            angle: {this.props.angle}
+            angle: {parseInt(this.props.angle)}
           </text>
         </g>
       </g>

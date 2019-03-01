@@ -3,11 +3,13 @@ import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import actions from '../redux/actions'
 import _ from 'lodash'
+import munkres from 'munkres-js'
 import 'babel-polyfill'
 
 const socket = new WebSocket('ws://localhost:8080/ws');
 
 import Robot from './Robot'
+import Point from './Point'
 
 class App extends Component {
   constructor(props) {
@@ -18,7 +20,7 @@ class App extends Component {
       robots: [],
       ids: [],
       corners: [],
-      point: { x: -100, y: -100 }
+      points: []
     }
     this.socket.onmessage = this.onMessage.bind(this)
 
@@ -26,7 +28,9 @@ class App extends Component {
     this.height = 1080
 
     this.ips = {
-      1: '192.168.27.172'
+      0: '192.168.27.138',
+      1: '192.168.27.172',
+      2: '192.168.27.170',
     }
     this.port = 8883
 
@@ -83,20 +87,52 @@ class App extends Component {
   }
 
   onClick(event) {
+    if (!this.count) this.count = 0
     let x = event.clientX
     let y = event.clientY
-    let point = { x: x * 2, y: y * 2 }
-    this.setState({ point: point })
 
-    let id = 1
-    this.move(id, point)
+    let max = this.state.robots.length
+    let i = this.count % max
+    let point = { x: x * 2, y: y * 2 }
+    let points = this.state.points
+    points[i] = point
+    this.setState({ points: points })
+    this.count++
   }
 
-  // forward: a2, b1
-  // right: a2
-  // left: b1
+  start() {
+    let res = this.assign()
+    let distMatrix = res.distMatrix
+    let rids = res.rids
+    let ids = munkres(distMatrix)
+    for (let id of ids) {
+      let pid = id[0]
+      let rid = rids[id[1]]
+      let point = this.state.points[pid]
+      console.log('rid: ' + rid, 'pid: ' + pid)
+      // this.move(rid, point)
+    }
+  }
+
+  assign() {
+    let distMatrix = []
+    let rids = []
+    for (let point of this.state.points) {
+      let distArray = []
+      for (let robot of this.state.robots) {
+        let dist = Math.sqrt((point.x - robot.pos.x)**2 + (point.y - robot.pos.y)**2)
+        distArray.push(dist)
+        rids.push(robot.id)
+      }
+      distMatrix.push(distArray)
+    }
+    if (!distMatrix.length) return
+    return { distMatrix: distMatrix, rids: rids }
+  }
 
   async move(id, point) {
+    // forward: a2, b1, right: a2, left: b1
+    let error = 0
     while (true) {
       try {
         let res = this.calculate(id, point)
@@ -117,16 +153,16 @@ class App extends Component {
         this.socket.send(JSON.stringify(message))
         await this.sleep(100)
       } catch (err) {
-        // lost AR marker
-        break
+        console.log('lost AR marker')
+        error++
+        if (error > 30) break
       }
     }
     console.log('finish')
-    this.stop()
+    this.stop(id)
   }
 
-  stop() {
-    let id = 1
+  stop(id) {
     let command = { a1: 0, a2: 0, b1: 0, b2: 0 }
     let message = { command: command, ip: this.ips[id], port: this.port }
     this.socket.send(JSON.stringify(message))
@@ -139,20 +175,96 @@ class App extends Component {
   }
 
   calculate(id, point) {
-    let robot = this.state.robots[0] // id
+    let robot = this.getRobot(id)
     let dir = Math.atan2(point.x - robot.pos.x, point.y - robot.pos.y) * 180 / Math.PI
     dir = (-dir + 180) % 360
     let diff = dir - robot.angle
     let dist = Math.sqrt((point.x - robot.pos.x)**2 + (point.y - robot.pos.y)**2)
-    // robot.point = point
-    // robot.diff = diff
-    // robot.dist = dist
-    // let robots = this.state.robots
-    // robots[id] = robot
-    // this.setState({ robots: robots })
     return { diff: diff, dist: dist }
   }
 
+  getRobot(id) {
+    for (let robot of this.state.robots) {
+      if (robot.id === id) return robot
+    }
+    return null
+  }
+
+  animate() {
+    this.frameId = window.requestAnimationFrame(this.animate)
+  }
+
+  updateState(state) {
+    this.props.store.dispatch(actions.updateState(state))
+  }
+
+  render() {
+    return (
+      <div>
+        <div className="ui grid">
+          <div className="twelve wide column">
+            <canvas id="canvas" width={ this.width / 2 } height={ this.height / 2 }></canvas>
+            <svg id="svg" width={ this.width / 2 } height={ this.height / 2 } onClick={ this.onClick.bind(this) }>
+              { this.state.robots.map((robot, i) => {
+                return (
+                  <Robot
+                    id={robot.id}
+                    key={robot.id}
+                    x={robot.pos.x}
+                    y={robot.pos.y}
+                    angle={robot.angle}
+                  />
+                )
+              })}
+
+              { this.state.points.map((point, i) => {
+                return (
+                  <Point
+                    id={i}
+                    key={i}
+                    x={point.x}
+                    y={point.y}
+                  />
+                )
+              })}
+            </svg>
+          </div>
+          <div className="four wide column">
+            <div className="ui teal button" onClick={ this.start.bind(this) }>
+              Move
+            </div>
+            <br/>
+            <br/>
+            <div>
+              Robots
+              <pre id="robots">{ JSON.stringify(this.state.robots, null, 2) }</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+}
+
+window.addEventListener('resize', () => {
+  // window.app.resize()
+}, false)
+
+function mapStateToProps(state) {
+  return state
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    actions: bindActionCreators(actions, dispatch)
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(App)
+
+
+
+/*
   async moveOld(id, point) {
     while (true) {
       while (true) {
@@ -250,72 +362,4 @@ class App extends Component {
   // stop() {
   //   cancelAnimationFrame(this.frameId)
   // }
-
-  animate() {
-    this.frameId = window.requestAnimationFrame(this.animate)
-  }
-
-  updateState(state) {
-    this.props.store.dispatch(actions.updateState(state))
-  }
-
-  render() {
-    return (
-      <div>
-        <div className="ui grid">
-          <div className="twelve wide column">
-            <canvas id="canvas" width={ this.width / 2 } height={ this.height / 2 }></canvas>
-            <svg id="svg" width={ this.width / 2 } height={ this.height / 2 } onClick={ this.onClick.bind(this) }>
-              { this.state.robots.map((robot, i) => {
-                return (
-                  <Robot
-                    id={robot.id}
-                    x={robot.pos.x}
-                    y={robot.pos.y}
-                    angle={robot.angle}
-                  />
-                )
-              })}
-              <g id="point">
-                <circle
-                  cx={this.state.point.x / 2}
-                  cy={this.state.point.y / 2}
-                  r="10"
-                  fill="red"
-                />
-                <text x={this.state.point.x / 2 + 5} y={this.state.point.y / 2 - 10} className="label">
-                  x: { this.state.point.x }, y: { this.state.point.y }
-                </text>
-              </g>
-            </svg>
-          </div>
-          <div className="four wide column">
-            <div>
-              Robots
-              <pre id="robots">{ JSON.stringify(this.state.robots, null, 2) }</pre>
-              Markers
-              <pre id="markers"></pre>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-}
-
-window.addEventListener('resize', () => {
-  // window.app.resize()
-}, false)
-
-function mapStateToProps(state) {
-  return state
-}
-
-function mapDispatchToProps(dispatch) {
-  return {
-    actions: bindActionCreators(actions, dispatch)
-  }
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(App)
-
+*/
