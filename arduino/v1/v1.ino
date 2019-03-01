@@ -134,11 +134,11 @@ void pause() {
   digitalWrite(c1, HIGH);
   digitalWrite(c2, HIGH);
   digitalWrite(d1, HIGH);
-  digitalWrite(d2, HIGH);  
+  digitalWrite(d2, HIGH);
 }
 
 void loop() {
-  
+
   int packetSize = UDP.parsePacket();
   if (packetSize) {
     int len = UDP.read(packetBuffer, packetSize);
@@ -148,12 +148,17 @@ void loop() {
     StaticJsonBuffer<200> jsonBuffer;
     JsonObject& root = jsonBuffer.parseObject(json);
 
+    int duration = root["duration"];
     int pos = root["pos"];
 
-    analogWrite(a1, root["a1"]);
-    analogWrite(a2, root["a2"]);
-    analogWrite(b1, root["b1"]);
-    analogWrite(b2, root["b2"]);      
+    if (duration) {
+      if (root["a1"] > 0) digitalWrite(a1, HIGH);
+      if (root["a2"] > 0) digitalWrite(a2, HIGH);
+      if (root["b1"] > 0) digitalWrite(b1, HIGH);
+      if (root["b2"] > 0) digitalWrite(b2, HIGH);
+      delay(duration);
+      off();
+    }
 
     if (pos) {
       actuate(pos);

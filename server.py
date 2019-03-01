@@ -16,7 +16,7 @@ from cv2 import aruco
 
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-fps = 1
+fps = 60
 
 class HttpHandler(web.RequestHandler):
   def get(self):
@@ -51,6 +51,7 @@ class SocketHandler(websocket.WebSocketHandler):
     frame = aruco.drawDetectedMarkers(frame, corners, ids, borderColor=(0, 0, 255))
     frame = aruco.drawDetectedMarkers(frame, rejectedImgPoints, borderColor=(0, 255, 0))
     frame = cv2.resize(frame, (int(frame.shape[1]/2), int(frame.shape[0]/2)))
+    frame = cv2.flip(frame, 1)
     ret, buffer = cv2.imencode('.jpg', frame)
     image = base64.b64encode(buffer).decode('utf-8')
     if ids is None:
