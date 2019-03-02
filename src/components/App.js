@@ -28,9 +28,9 @@ class App extends Component {
     this.height = 1080
 
     this.ips = {
-      0: '192.168.27.138',
-      1: '192.168.27.172',
-      2: '192.168.27.170',
+      0: '128.138.221.118',
+      1: '128.138.221.102',
+      2: '128.138.221.177',
     }
     this.port = 8883
 
@@ -110,7 +110,7 @@ class App extends Component {
       let rid = rids[id[1]]
       let point = this.state.points[pid]
       console.log('rid: ' + rid, 'pid: ' + pid)
-      // this.move(rid, point)
+      this.move(rid, point)
     }
   }
 
@@ -137,17 +137,38 @@ class App extends Component {
       try {
         let res = this.calculate(id, point)
         if (res.dist < 100) break
-        console.log(res)
-        let a2 = Math.min(255, parseInt(res.dist))
-        let b1 = Math.min(255, parseInt(res.dist))
+        // console.log(res)
+        let a2 = Math.min(1023, res.dist+100)
+        let b1 = Math.min(1023, res.dist+100)
+
+        let a1 = 0
+        let b2 = 0
         if (res.diff < 0) { // left
-          console.log('left')
-          a2 = Math.max(a2 - parseInt(Math.abs(res.diff))*3, 0)
+          // console.log('left')
+          // a2 = Math.max(a2 - parseInt(Math.abs(res.diff))*6, 0)
+          if (a2 - Math.abs(res.diff)*5 > 0) {
+            a2 = a2 - Math.abs(res.diff)*5
+            a1 = 0
+          } else {
+            a1 = -(a2 - Math.abs(res.diff)*5)
+            a2 = 0
+          }
         } else { // right
-          console.log('right')
-          b1 = Math.max(b1 - parseInt(Math.abs(res.diff))*3, 0)
+          // console.log('right')
+          // b1 = Math.max(b1 - parseInt(Math.abs(res.diff))*6, 0)
+          if (b1 - Math.abs(res.diff)*5 > 0) {
+            b1 = b1 - Math.abs(res.diff)*5
+            b2 = 0
+          } else {
+            b2 = -(b1 - Math.abs(res.diff)*5)
+            b1 = 0
+          }
         }
-        let command = { a1: 0, a2: a2, b1: b1, b2: 0 }
+        a1 = parseInt(a1)
+        a2 = parseInt(a2)
+        b1 = parseInt(b1)
+        b2 = parseInt(b2)
+        let command = { a1: a1, a2: a2, b1: b1, b2: b2 }
         console.log(command)
         let message = { command: command, ip: this.ips[id], port: this.port }
         this.socket.send(JSON.stringify(message))
@@ -155,7 +176,8 @@ class App extends Component {
       } catch (err) {
         console.log('lost AR marker')
         error++
-        if (error > 30) break
+        await this.sleep(100)
+        if (error > 10) break
       }
     }
     console.log('finish')
