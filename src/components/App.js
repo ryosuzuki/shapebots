@@ -137,8 +137,6 @@ class App extends Component {
 
   async move(id, point) {
     let error = 0
-    let Il = 0
-    let Ir = 0
     let prev
     let Ib = 200
     let Ip = 200
@@ -146,12 +144,8 @@ class App extends Component {
       try {
         let res = this.calculate(id, point)
         if (res.dist < 150) break
-        // PID Control
-        // K (a' - a)
-        // K : gain -> base
-        // a': diff' -> 0
-        // a : diff  -> current
 
+        // forward: a2, b1, right: a2, left: b1
         let base = Math.min(Ib, res.dist+100)
         let a2 = base
         let b1 = base
@@ -160,64 +154,29 @@ class App extends Component {
         let param = 5
 
         let unit = (90 - Math.abs(res.diff)) / 90
-
-        // let Kp = 1
-        // let Ki = 1
-        // let P = res.diff
-        // I -= Math.abs(P)
-        // let t = Kp * P + Ki * I
-
-        let D = 0
         let Kd = 0.5
-        if (!prev) D = unit - prev
+        let D = !prev ? 0 : unit - prev
         prev = unit
-
         Ib += 20
         Ip += 10
-        // let Kp = Math.min(I * (180 - Math.abs(res.diff)) , base)
         let Kp = Math.min(Ip, base)
         console.log(Kp)
+        /*
+        Ryo's note: If Kp is too high, it will be overshooting. Thus, start from a small value at the beginning to avoid overshooting, while gradually increasing the value once it starts adjusting the path and angle.
+        */
         if (res.diff < 0) { // left
-          Il += unit
           a2 = Math.max(unit - Kd*D, 0) * Kp
           a1 = Math.max(-unit - Kd*D, 0) * Kp
         } else { // right
-          Ir += unit
           b1 = Math.max(unit - Kd*D, 0) * Kp
           b2 = Math.max(-unit - Kd*D, 0) * Kp
         }
-        /*
-        // forward: a2, b1, right: a2, left: b1
-        if (res.diff < 0) { // left
-          // console.log('left')
-          // if (a2 - Math.abs(res.diff)*param > 0) {
-          if (Math.abs(res.diff) < 45) {
-            a2 = Math.min(1023, res.dist+100)
-            a2 = a2 - Math.abs(res.diff)*param
-            a1 = 0
-          } else {
-            a1 = res.dist+100 + Math.abs(res.diff)*5
-            a2 = 0
-          }
-        } else { // right
-          // console.log('right')
-          // if (b1 - Math.abs(res.diff)*param > 0) {
-          if (Math.abs(res.diff) < 45) {
-            b1 = Math.min(1023, res.dist+100)
-            b1 = b1 - Math.abs(res.diff)*param
-            b2 = 0
-          } else {
-            b2 = res.dist+100 + Math.abs(res.diff)*5
-            b1 = 0
-          }
-        }
-        */
+
         a1 = parseInt(a1)
         a2 = parseInt(a2)
         b1 = parseInt(b1)
         b2 = parseInt(b2)
         let command = { a1: a1, a2: a2, b1: b1, b2: b2 }
-        // console.log(command)
         let message = { command: command, ip: this.ips[id], port: this.port }
         this.socket.send(JSON.stringify(message))
         await this.sleep(100)
@@ -230,8 +189,6 @@ class App extends Component {
     }
     console.log('finish')
     this.stop(id)
-    // a2 = Math.max(a2 - parseInt(Math.abs(res.diff))*3, 0)
-    // b1 = Math.max(b1 - parseInt(Math.abs(res.diff))*3, 0)
   }
 
   stop(id) {
@@ -445,4 +402,32 @@ export default connect(mapStateToProps, mapDispatchToProps)(App)
   // stop() {
   //   cancelAnimationFrame(this.frameId)
   // }
+*/
+
+/*
+if (res.diff < 0) { // left
+  // console.log('left')
+  // if (a2 - Math.abs(res.diff)*param > 0) {
+  if (Math.abs(res.diff) < 45) {
+    a2 = Math.min(1023, res.dist+100)
+    a2 = a2 - Math.abs(res.diff)*param
+    a1 = 0
+  } else {
+    a1 = res.dist+100 + Math.abs(res.diff)*5
+    a2 = 0
+  }
+} else { // right
+  // console.log('right')
+  // if (b1 - Math.abs(res.diff)*param > 0) {
+  if (Math.abs(res.diff) < 45) {
+    b1 = Math.min(1023, res.dist+100)
+    b1 = b1 - Math.abs(res.diff)*param
+    b2 = 0
+  } else {
+    b2 = res.dist+100 + Math.abs(res.diff)*5
+    b1 = 0
+  }
+}
+// a2 = Math.max(a2 - parseInt(Math.abs(res.diff))*3, 0)
+// b1 = Math.max(b1 - parseInt(Math.abs(res.diff))*3, 0)
 */
