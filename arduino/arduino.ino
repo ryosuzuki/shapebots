@@ -134,11 +134,11 @@ void pause() {
   digitalWrite(c1, HIGH);
   digitalWrite(c2, HIGH);
   digitalWrite(d1, HIGH);
-  digitalWrite(d2, HIGH);  
+  digitalWrite(d2, HIGH);
 }
 
 void loop() {
-  
+
   int packetSize = UDP.parsePacket();
   if (packetSize) {
     int len = UDP.read(packetBuffer, packetSize);
@@ -153,7 +153,7 @@ void loop() {
     analogWrite(a1, root["a1"]);
     analogWrite(a2, root["a2"]);
     analogWrite(b1, root["b1"]);
-    analogWrite(b2, root["b2"]);      
+    analogWrite(b2, root["b2"]);
 
     if (pos) {
       actuate(pos);

@@ -34,6 +34,7 @@ class App extends Component {
     }
     this.port = 8883
 
+    this.log()
   }
 
   componentDidMount() {
@@ -130,46 +131,93 @@ class App extends Component {
     return { distMatrix: distMatrix, rids: rids }
   }
 
+  log() {
+    console.log('v3')
+  }
+
   async move(id, point) {
-    // forward: a2, b1, right: a2, left: b1
     let error = 0
+    let Il = 0
+    let Ir = 0
+    let prev
+    let Ib = 200
+    let Ip = 200
     while (true) {
       try {
         let res = this.calculate(id, point)
-        if (res.dist < 100) break
-        // console.log(res)
-        let a2 = Math.min(1023, res.dist+100)
-        let b1 = Math.min(1023, res.dist+100)
+        if (res.dist < 150) break
+        // PID Control
+        // K (a' - a)
+        // K : gain -> base
+        // a': diff' -> 0
+        // a : diff  -> current
 
+        let base = Math.min(Ib, res.dist+100)
+        let a2 = base
+        let b1 = base
         let a1 = 0
         let b2 = 0
+        let param = 5
+
+        let unit = (90 - Math.abs(res.diff)) / 90
+
+        // let Kp = 1
+        // let Ki = 1
+        // let P = res.diff
+        // I -= Math.abs(P)
+        // let t = Kp * P + Ki * I
+
+        let D = 0
+        let Kd = 0.5
+        if (!prev) D = unit - prev
+        prev = unit
+
+        Ib += 20
+        Ip += 10
+        // let Kp = Math.min(I * (180 - Math.abs(res.diff)) , base)
+        let Kp = Math.min(Ip, base)
+        console.log(Kp)
+        if (res.diff < 0) { // left
+          Il += unit
+          a2 = Math.max(unit - Kd*D, 0) * Kp
+          a1 = Math.max(-unit - Kd*D, 0) * Kp
+        } else { // right
+          Ir += unit
+          b1 = Math.max(unit - Kd*D, 0) * Kp
+          b2 = Math.max(-unit - Kd*D, 0) * Kp
+        }
+        /*
+        // forward: a2, b1, right: a2, left: b1
         if (res.diff < 0) { // left
           // console.log('left')
-          // a2 = Math.max(a2 - parseInt(Math.abs(res.diff))*6, 0)
-          if (a2 - Math.abs(res.diff)*5 > 0) {
-            a2 = a2 - Math.abs(res.diff)*5
+          // if (a2 - Math.abs(res.diff)*param > 0) {
+          if (Math.abs(res.diff) < 45) {
+            a2 = Math.min(1023, res.dist+100)
+            a2 = a2 - Math.abs(res.diff)*param
             a1 = 0
           } else {
-            a1 = -(a2 - Math.abs(res.diff)*5)
+            a1 = res.dist+100 + Math.abs(res.diff)*5
             a2 = 0
           }
         } else { // right
           // console.log('right')
-          // b1 = Math.max(b1 - parseInt(Math.abs(res.diff))*6, 0)
-          if (b1 - Math.abs(res.diff)*5 > 0) {
-            b1 = b1 - Math.abs(res.diff)*5
+          // if (b1 - Math.abs(res.diff)*param > 0) {
+          if (Math.abs(res.diff) < 45) {
+            b1 = Math.min(1023, res.dist+100)
+            b1 = b1 - Math.abs(res.diff)*param
             b2 = 0
           } else {
-            b2 = -(b1 - Math.abs(res.diff)*5)
+            b2 = res.dist+100 + Math.abs(res.diff)*5
             b1 = 0
           }
         }
+        */
         a1 = parseInt(a1)
         a2 = parseInt(a2)
         b1 = parseInt(b1)
         b2 = parseInt(b2)
         let command = { a1: a1, a2: a2, b1: b1, b2: b2 }
-        console.log(command)
+        // console.log(command)
         let message = { command: command, ip: this.ips[id], port: this.port }
         this.socket.send(JSON.stringify(message))
         await this.sleep(100)
@@ -182,6 +230,8 @@ class App extends Component {
     }
     console.log('finish')
     this.stop(id)
+    // a2 = Math.max(a2 - parseInt(Math.abs(res.diff))*3, 0)
+    // b1 = Math.max(b1 - parseInt(Math.abs(res.diff))*3, 0)
   }
 
   stop(id) {
@@ -200,7 +250,18 @@ class App extends Component {
     let robot = this.getRobot(id)
     let dir = Math.atan2(point.x - robot.pos.x, point.y - robot.pos.y) * 180 / Math.PI
     dir = (-dir + 180) % 360
-    let diff = dir - robot.angle
+    let diff = Math.min((360) - Math.abs(robot.angle - dir), Math.abs(robot.angle - dir))
+    // 1 - 359 = -358 < 0 && 358 > 180 -> -2
+    // 1 - 180 = -179 < 0 && 179 < 180 -> +179
+    // 15 - 1  =  14  > 0 && 14  < 180 -> -14
+    // 1 - 200 = -199 < 0 && 199 > 180 -> -161
+    // 359 - 1 =  358 > 0 && 358 > 180 -> +2
+    if (robot.angle - dir < 0 && Math.abs(robot.angle - dir) > 180) {
+      diff = -diff
+    }
+    if (robot.angle - dir > 0 && Math.abs(robot.angle - dir) < 180) {
+      diff = -diff
+    }
     let dist = Math.sqrt((point.x - robot.pos.x)**2 + (point.y - robot.pos.y)**2)
     return { diff: diff, dist: dist }
   }

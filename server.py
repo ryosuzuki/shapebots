@@ -22,6 +22,9 @@ class HttpHandler(web.RequestHandler):
   def get(self):
     self.render('./index.html')
 
+  def set_extra_headers(self, path):
+    self.set_header('Cache-control', 'no-cache')
+
 class SocketHandler(websocket.WebSocketHandler):
   def initialize(self):
     self.state = True
