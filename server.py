@@ -16,7 +16,8 @@ from cv2 import aruco
 
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-fps = 60
+fps = 30
+cameras = [0] # [0, 2]
 
 class HttpHandler(web.RequestHandler):
   def get(self):
@@ -30,11 +31,14 @@ class SocketHandler(websocket.WebSocketHandler):
     self.state = True
 
   def open(self):
-    self.cap = cv2.VideoCapture(0)
-    self.cap.set(cv2.CAP_PROP_FPS, fps)
-    w = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    h = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    print(w, h)
+    self.caps = []
+    for camera in cameras:
+      cap = cv2.VideoCapture(camera)
+      cap.set(cv2.CAP_PROP_FPS, fps)
+      w = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+      h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+      print(w, h)
+      self.caps.append(cap)
     print(self.request.remote_ip, ': connection opened')
     self.ioloop = tornado.ioloop.IOLoop.instance()
     self.send()
@@ -43,12 +47,17 @@ class SocketHandler(websocket.WebSocketHandler):
     period = 1 / fps
     self.ioloop.add_timeout(time.time() + period, self.send)
     if self.ws_connection:
-      result = self.capture()
-      message = json.dumps(result)
+      i = 0
+      results = []
+      for camera in cameras:
+        self.caps[i]
+        result = self.capture(i)
+        results.append(result)
+      message = json.dumps(results)
       self.write_message(message)
 
-  def capture(self):
-    ret, frame = self.cap.read()
+  def capture(self, i):
+    ret, frame = self.caps[i].read()
     dictionary, parameters = self.config()
     corners, ids, rejectedImgPoints = aruco.detectMarkers(frame, dictionary, parameters=parameters)
     frame = aruco.drawDetectedMarkers(frame, corners, ids, borderColor=(0, 0, 255))
@@ -79,7 +88,8 @@ class SocketHandler(websocket.WebSocketHandler):
     client.sendto(command, (ip, port))
 
   def on_close(self):
-    self.cap.release()
+    for cap in self.caps:
+      cap.release()
     cv2.destroyAllWindows()
     self.state = False
     self.close()

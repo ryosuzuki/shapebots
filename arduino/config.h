@@ -5,7 +5,6 @@ static const char *ssid = "Ryo Suzuki";
 static const char *password = "ryotomomi";
 
 int localPort = 8883;
-int remotePort = 8884;
 
 // swarm-v2
 int a1 = 0;  // D3

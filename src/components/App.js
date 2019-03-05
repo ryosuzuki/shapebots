@@ -28,10 +28,18 @@ class App extends Component {
     this.height = 1080
 
     this.ips = {
-      0: '128.138.221.118',
-      1: '128.138.221.102',
-      2: '128.138.221.177',
+      1: '128.138.221.148',
+      2: '128.138.221.150',
+      3: '128.138.221.118',
+      4: '128.138.221.155',
+      5: '128.138.221.113',
+      6: '128.138.221.177',
+      7: '128.138.221.147',
+      8: '128.138.221.212',
+      9: '128.138.221.156',
+      10: '128.138.221.102'
     }
+
     this.port = 8883
 
     this.log()
@@ -43,6 +51,8 @@ class App extends Component {
 
   onMessage(e) {
     let data = JSON.parse(e.data)
+    console.log(data)
+    data = data[0]
     this.updateCamera(data.image)
     this.updateRobots(data.ids, data.corners)
   }
