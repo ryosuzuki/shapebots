@@ -17,32 +17,24 @@ int c2 = 14; // D5
 int d1 = 5;  // D1
 int d2 = 4;  // D2
 
-int s1 = 12; // D6
-//#define s2 A0;   // 
+int s1 = 12; // D6 
+int s2 = A0; // A0
+//#define s2 A0 // A0
 
 /*
-// swarm-v1
-int a1 = 5;
-int a2 = 4;
-int b1 = 16;
-int b2 = 14;
-
-// swarm-v2
-int a1 = 16;
-int a2 = 14;
-int b1 = 5;
-int b2 = 4;
-
-// test board
-int a1 = 5;
-int a2 = 4;
-int b1 = 16;
-int b2 = 14;
-
-int c1 = 5;
-int c2 = 4;
-int d1 = 16;
-int d2 = 14;
-*/
+ * G V C1 C2 D2 D1
+ * ---------------
+ * TX          RST
+ * RX          A0 
+ * D1          D0
+ * D2          D5
+ * D3          D6
+ * D4          D7
+ * G           D8
+ * 5V          3V3
+ * ---------------
+ *    |      |  
+ *     ------
+ */
 
 #endif

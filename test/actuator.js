@@ -1,27 +1,52 @@
+let ips = {
+  1: '128.138.221.148',
+  2: '128.138.221.150',
+  3: '128.138.221.118',
+  4: '128.138.221.155',
+  5: '128.138.221.113',
+  6: '128.138.221.177',
+  7: '128.138.221.147',
+  8: '128.138.221.212',
+  9: '128.138.221.156',
+  10: '128.138.221.102'
+}
+
+let id = 9;
+
 const keypress = require('keypress')
 const dgram = require('dgram')
 const readline = require('readline')
-
-let HOST = '192.168.27.45'
-// HOST = '10.0.0.105'
-// HOST = '192.168.27.111'
-// HOST = '192.168.27.164'
-// HOST = '192.168.27.78'
-HOST = '10.0.0.114'
-HOST = '192.168.27.138'
-
-const PORT = 8883
 
 console.log('start')
 const sendMessage = function(json) {
   const client = dgram.createSocket('udp4')
   let str = JSON.stringify(json)
   let message = Buffer.from(str)
-  client.send(message, 0, message.length, PORT, HOST, (err, bytes) => {
+  let port = 8883
+  let ip = ips[id]
+  client.send(message, 0, message.length, port, ip, (err, bytes) => {
     if (err) throw err
     client.close()
   })
 }
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+})
+
+rl.on('line', (line) => {
+  let pos = parseInt(line)
+  if (pos === NaN) {
+    console.log('enter int value')
+  } else if (pos > 200) {
+    console.log('exceed max')
+  } else {
+    console.log('move to ' + pos)
+    sendMessage({ pos_1: pos, pos_2: pos })
+  }
+})
+
 
 /*
 const server = dgram.createSocket('udp4')
@@ -34,18 +59,3 @@ server.on('message', (msg, rinfo) => {
 });
 server.bind(8884, '0.0.0.0')
 */
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-})
-
-rl.on('line', (line) => {
-  let pos = parseInt(line)
-  if (pos === NaN) {
-    console.log('enter int value')
-  } else {
-    console.log('move to ' + pos)
-    sendMessage({ pos: pos })
-  }
-});

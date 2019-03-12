@@ -11,8 +11,15 @@ IPAddress myIP;
 
 char packetBuffer[255];
 int cnt = 0;
-int current = 0;
 int maximum = 800;
+
+int current_1 = 0;
+int current_2 = 0;
+int dir_1 = 0;
+int dir_2 = 0;
+
+int pos_1 = 0;
+int pos_2 = 0;
 
 void setup() {
   pinMode (a1, OUTPUT);
@@ -25,7 +32,8 @@ void setup() {
   pinMode (d1, OUTPUT);
   pinMode (d2, OUTPUT);
 
-  pinMode(s1, INPUT);
+  pinMode(s1, INPUT_PULLUP);
+  pinMode(s2, INPUT_PULLUP);
 
   Serial.begin (9600);
   delay(10);
@@ -58,8 +66,108 @@ void setup() {
   Serial.print("AP IP address: ");
   Serial.println(myIP);
   UDP.begin(localPort);
-
   off();
+}
+
+void loop() {
+
+  int packetSize = UDP.parsePacket();
+  if (packetSize) {
+    int len = UDP.read(packetBuffer, packetSize);
+    if (len > 0) packetBuffer[len] = '\0';
+
+    String json = packetBuffer;
+    StaticJsonBuffer<200> jsonBuffer;
+    JsonObject& root = jsonBuffer.parseObject(json);
+
+    pos_1 = root["pos_1"];
+    pos_2 = root["pos_2"];
+
+    Serial.println(pos_1);
+    Serial.println(pos_2);
+
+    if (pos_1) {
+      if (pos_1 >= current_1) {
+        dir_1 = 1;
+      } else {
+        dir_1 = -1;      
+      }
+    }
+    if (pos_2) {
+      if (pos_2 >= current_2) {
+        dir_2 = 1;
+      } else {
+        dir_2 = -1;
+      }  
+    }
+    
+    analogWrite(a1, root["a1"]);
+    analogWrite(a2, root["a2"]);
+    analogWrite(b1, root["b1"]);
+    analogWrite(b2, root["b2"]);
+  }
+
+  if (digitalRead(s1) == 0) {
+    Serial.println("Switch 1 ON");
+  }
+  if (map(analogRead(s2), 0, 1023, 0, 1) == 0) {
+    Serial.println("Switch 2 ON");
+  }      
+
+  if (dir_1 != 0 && dir_2 != 0) {
+    Serial.print("current_1: ");
+    Serial.print(current_1);
+    Serial.print("current_2: ");
+    Serial.print(current_2);
+    Serial.println();
+  }
+
+  if (dir_1 == 0) {
+    pause(1);
+  }
+  if (dir_2 == 0) {
+    pause(2);
+  }
+
+  if (dir_1 > 0) {
+    up(1);
+    current_1 = current_1 + 1;
+    if (current_1 >= pos_1) {
+      dir_1 = 0;
+    }
+  } 
+  if (dir_1 < 0) {
+    down(1); 
+    current_1 = current_1 - 1;
+    if (current_1 < pos_1) {
+      dir_1 = 0;
+    }
+    if (digitalRead(s1) == 0) {
+      dir_1 = 0;
+      current_1 = 0;
+    }    
+  }
+
+  if (dir_2 > 0) {
+    up(2);
+    current_2 = current_2 + 1;
+    if (current_2 >= pos_2) {
+      dir_2 = 0;
+    }
+  } 
+  if (dir_2 < 0) {
+    down(2); 
+    current_2 = current_2 - 1;
+    if (current_2 < pos_2) {
+      dir_2 = 0;
+    }
+    if (map(analogRead(s2), 0, 1023, 0, 1) == 0) {
+      dir_2 = 0;
+      current_2 = 0;
+    }      
+  }
+
+  delay(1);
 }
 
 void off() {
@@ -74,99 +182,32 @@ void off() {
   digitalWrite(d2, LOW);
 }
 
-void initialize() {
-  while(true) {
-    down();
-    if (digitalRead(s1) != 0) {
-       break;
-    }
-  }
-  current = 0;
-}
-
-void actuate(int pos) {
-  if (pos > current) {
-    while(true) {
-      if (current >= pos || current >= maximum) {
-        break;
-      }
-      up();
-      current = current + 1;
-      Serial.println(current);
-      delay(1);
-    }
+void up(int num) {
+  if (num == 1) {
+    digitalWrite(c1, LOW);
+    digitalWrite(c2, HIGH);
   } else {
-    while(true) {
-      if (current <= pos) {
-        break;
-      }
-      if (digitalRead(s1) != 0) {
-        pause();
-        delay(100);
-        up();
-        delay(300);
-        current = 0;
-        break;
-      }
-      down();
-      current = current - 1;
-      Serial.println(current);
-      delay(1);
-    }
+    digitalWrite(d1, LOW);
+    digitalWrite(d2, HIGH);
   }
 }
 
-void up() {
-  digitalWrite(c1, LOW);
-  digitalWrite(c2, HIGH);
-  digitalWrite(d1, LOW);
-  digitalWrite(d2, HIGH);
-}
-
-void down() {
-  digitalWrite(c1, HIGH);
-  digitalWrite(c2, LOW);
-  digitalWrite(d1, HIGH);
-  digitalWrite(d2, LOW);
-}
-
-void pause() {
-  digitalWrite(c1, HIGH);
-  digitalWrite(c2, HIGH);
-  digitalWrite(d1, HIGH);
-  digitalWrite(d2, HIGH);
-}
-
-void loop() {
-
-  int packetSize = UDP.parsePacket();
-  if (packetSize) {
-    int len = UDP.read(packetBuffer, packetSize);
-    if (len > 0) packetBuffer[len] = '\0';
-
-    String json = packetBuffer;
-    StaticJsonBuffer<200> jsonBuffer;
-    JsonObject& root = jsonBuffer.parseObject(json);
-
-    int pos = root["pos"];
-
-    analogWrite(a1, root["a1"]);
-    analogWrite(a2, root["a2"]);
-    analogWrite(b1, root["b1"]);
-    analogWrite(b2, root["b2"]);
-
-    if (pos) {
-      actuate(pos);
-      off();
-    }
-
-    /*
-    UDP.beginPacket("0.0.0.0", 8884);
-    UDP.write("ok");
-    UDP.endPacket();
-    */
-
+void down(int num) {
+  if (num == 1) {
+    digitalWrite(c1, HIGH);
+    digitalWrite(c2, LOW);
+  } else {
+    digitalWrite(d1, HIGH);
+    digitalWrite(d2, LOW);
   }
+}
 
-
+void pause(int num) {
+  if (num == 1) {
+    digitalWrite(c1, HIGH);
+    digitalWrite(c2, HIGH);
+  } else {
+    digitalWrite(d1, HIGH);
+    digitalWrite(d2, HIGH);
+  }
 }
