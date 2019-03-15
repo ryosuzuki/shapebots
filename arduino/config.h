@@ -21,8 +21,9 @@ int s1 = 12; // D6
 int s2 = A0; // A0
 //#define s2 A0 // A0
 
-/*
- * G V C1 C2 D2 D1
+/*       
+ *       2     1
+ * G V D1 D2 C2 C1
  * ---------------
  * TX          RST
  * RX          A0 

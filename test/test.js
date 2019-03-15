@@ -11,7 +11,7 @@ let ips = {
   10: '128.138.221.102'
 }
 
-let id = 1
+let id = 9
 
 console.log('start')
 const sendCommand = function(json) {

@@ -80,6 +80,24 @@ void loop() {
     StaticJsonBuffer<200> jsonBuffer;
     JsonObject& root = jsonBuffer.parseObject(json);
 
+    int reset_1 = root["reset_1"];
+    int reset_2 = root["reset_2"];
+    if (reset_1 > 0) {
+      current_1 = 0;
+    }
+    if (reset_2 > 0) {
+      current_2 = 0;
+    }      
+
+    int init_1 = root["init_1"];
+    int init_2 = root["init_2"];
+    if (init_1 > 0) {
+      init(1);
+    }
+    if (init_2 > 0) {
+      init(2);
+    }      
+
     pos_1 = root["pos_1"];
     pos_2 = root["pos_2"];
 
@@ -107,26 +125,11 @@ void loop() {
     analogWrite(b2, root["b2"]);
   }
 
-  if (digitalRead(s1) == 0) {
-    Serial.println("Switch 1 ON");
-  }
-  if (map(analogRead(s2), 0, 1023, 0, 1) == 0) {
-    Serial.println("Switch 2 ON");
-  }      
-
-  if (dir_1 != 0 && dir_2 != 0) {
-    Serial.print("current_1: ");
-    Serial.print(current_1);
-    Serial.print("current_2: ");
-    Serial.print(current_2);
-    Serial.println();
-  }
-
   if (dir_1 == 0) {
-    pause(1);
+    stop(1);
   }
   if (dir_2 == 0) {
-    pause(2);
+    stop(2);
   }
 
   if (dir_1 > 0) {
@@ -143,8 +146,13 @@ void loop() {
       dir_1 = 0;
     }
     if (digitalRead(s1) == 0) {
-      dir_1 = 0;
+      pause(1);
+      delay(100);
+      up(1);
+      delay(500);
       current_1 = 0;
+      dir_1 = 0;
+      stop(1);
     }    
   }
 
@@ -156,15 +164,20 @@ void loop() {
     }
   } 
   if (dir_2 < 0) {
-    down(2); 
+    down(2);
     current_2 = current_2 - 1;
     if (current_2 < pos_2) {
       dir_2 = 0;
     }
     if (map(analogRead(s2), 0, 1023, 0, 1) == 0) {
-      dir_2 = 0;
+      pause(2);
+      delay(100);
+      up(2);
+      delay(500);
       current_2 = 0;
-    }      
+      dir_2 = 0;
+      stop(2);
+    }
   }
 
   delay(1);
@@ -180,6 +193,31 @@ void off() {
   digitalWrite(c2, LOW);
   digitalWrite(d1, LOW);
   digitalWrite(d2, LOW);
+}
+
+void init(int num) {
+  while (true) {
+    down(num);
+    delay(1);
+    if (digitalRead(s1) == 0) {
+      pause(num);
+      delay(100);
+      up(num);
+      delay(500);
+      current_1 = 0;
+      off();
+      break;
+    }
+    if (map(analogRead(s2), 0, 1023, 0, 1) == 0) {
+      pause(num);
+      delay(100);
+      up(num);
+      delay(500);
+      current_2 = 0;
+      off();      
+      break;
+    }    
+  }
 }
 
 void up(int num) {
@@ -198,6 +236,16 @@ void down(int num) {
     digitalWrite(c2, LOW);
   } else {
     digitalWrite(d1, HIGH);
+    digitalWrite(d2, LOW);
+  }
+}
+
+void stop(int num) {
+  if (num == 1) {
+    digitalWrite(c1, LOW);
+    digitalWrite(c2, LOW);
+  } else {
+    digitalWrite(d1, LOW);
     digitalWrite(d2, LOW);
   }
 }

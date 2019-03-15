@@ -36,10 +36,22 @@ const rl = readline.createInterface({
 })
 
 rl.on('line', (line) => {
+  if (line === 'init_1') {
+    console.log('init_1')
+    sendMessage({ init_1: 1 })
+  }
+  if (line === 'init_2') {
+    console.log('init_2')
+    sendMessage({ init_2: 1 })
+  }
+
   let pos = parseInt(line)
   if (pos === NaN) {
     console.log('enter int value')
-  } else if (pos > 200) {
+  } else if (pos === 0) {
+    console.log('reset')
+    sendMessage({ reset_1: 1 })
+  } else if (pos > 5000) {
     console.log('exceed max')
   } else {
     console.log('move to ' + pos)
