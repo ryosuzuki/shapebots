@@ -1,6 +1,6 @@
 let ips = {
-  1: '128.138.221.148',
-  2: '128.138.221.150',
+  1: '128.138.221.150',
+  2: '128.138.221.148',
   3: '128.138.221.118',
   4: '128.138.221.155',
   5: '128.138.221.113',
@@ -11,7 +11,8 @@ let ips = {
   10: '128.138.221.102'
 }
 
-let id = 9;
+let id = 1
+let max = 5000
 
 const keypress = require('keypress')
 const dgram = require('dgram')
@@ -50,8 +51,8 @@ rl.on('line', (line) => {
     console.log('enter int value')
   } else if (pos === 0) {
     console.log('reset')
-    sendMessage({ reset_1: 1 })
-  } else if (pos > 5000) {
+    sendMessage({ reset_1: 1, reset_2: 1 })
+  } else if (pos > max) {
     console.log('exceed max')
   } else {
     console.log('move to ' + pos)

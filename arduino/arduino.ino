@@ -11,7 +11,6 @@ IPAddress myIP;
 
 char packetBuffer[255];
 int cnt = 0;
-int maximum = 800;
 
 int current_1 = 0;
 int current_2 = 0;
