@@ -26,6 +26,15 @@ $ python --version
 Python 3.7.2
 ```
 
+If you get an error like "zlib not available" on macOS Mojave, then enter the following command at the terminal (See [this issue](https://github.com/pyenv/pyenv/issues/1219#issuecomment-448658430))
+
+```
+$ export LDFLAGS="-L/usr/local/opt/zlib/lib"
+$ export CPPFLAGS="-I/usr/local/opt/zlib/include"
+$ export LDFLAGS="-L/usr/local/opt/zlib/lib -L/usr/local/opt/sqlite/lib"
+$ export CPPFLAGS="-I/usr/local/opt/zlib/include -I/usr/local/opt/sqlite/include"
+```
+
 ## Install OpenCV
 
 ```
@@ -36,6 +45,7 @@ brew install opencv
 ```
 pip install opencv-python
 pip install tornado
+pip install opencv-contrib-python
 ```
 
 Test OpenCV in Python console
