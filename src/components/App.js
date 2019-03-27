@@ -5,6 +5,7 @@ const socket = new WebSocket('ws://localhost:8080/ws');
 
 import Robot from './Robot'
 import Target from './Target'
+import Line from './Line'
 
 import Move from './Move'
 import Simulator from './Simulator'
@@ -20,7 +21,9 @@ class App extends Component {
       robots: [],
       ids: [],
       corners: [],
-      targets: []
+      targets: [],
+      lines: [],
+      drawing: true
     }
 
     this.width = 1920
@@ -42,7 +45,8 @@ class App extends Component {
     this.port = 8883
 
     this.simulation = true
-
+    this.drawing = false
+    this.linePoints = []
     this.log()
   }
 
@@ -109,7 +113,23 @@ class App extends Component {
   }
 
   move() {
-    Move.move()
+    if (this.state.drawing) {
+      let targets = []
+      for (let line of this.state.lines) {
+        let target = {
+          x: line.center.x,
+          y: line.center.y,
+          angle: line.angle,
+          len: line.len
+        }
+        targets.push(target)
+      }
+      this.setState({ targets: targets }, () => {
+        Move.move()
+      })
+    } else {
+      Move.move()
+    }
   }
 
   onClick(event) {
@@ -118,12 +138,43 @@ class App extends Component {
     let y = event.clientY
 
     let max = this.state.robots.length
-    let i = this.count % max
     let target = { x: x * 2, y: y * 2 }
-    let targets = this.state.targets
-    targets[i] = target
-    this.setState({ targets: targets })
-    this.count++
+
+    if (this.state.drawing) {
+      this.linePoints.push(target)
+      let i = this.linePoints.length - 1
+      if (i > 0) {
+        let op = this.linePoints[i-1]
+        let np = this.linePoints[i]
+        let center = {
+          x: (op.x + np.x)/2,
+          y: (op.y + np.y)/2
+        }
+        let v = {
+          x: np.x - op.x,
+          y: np.y - op.y
+        }
+        let len = Math.sqrt(v.x**2 + v.y**2)
+        let angle = Math.atan2(v.x, v.y) * 180 / Math.PI
+        let line = {
+          op: op,
+          np: np,
+          v: v,
+          center: center,
+          len: len,
+          angle: angle,
+        }
+        let lines = this.state.lines
+        lines.push(line)
+        this.setState({ lines: lines })
+      }
+    } else {
+      let i = this.count % max
+      let targets = this.state.targets
+      targets[i] = target
+      this.setState({ targets: targets })
+      this.count++
+    }
   }
 
   log() {
@@ -140,7 +191,11 @@ class App extends Component {
         <div className="ui grid">
           <div className="twelve wide column">
             <canvas id="canvas" width={ this.width / 2 } height={ this.height / 2 }></canvas>
-            <svg id="svg" width={ this.width / 2 } height={ this.height / 2 } onClick={ this.onClick.bind(this) }>
+            <svg id="svg"
+              width={ this.width / 2 }
+              height={ this.height / 2 }
+              onClick={ this.onClick.bind(this) }
+            >
               { this.state.robots.map((robot, i) => {
                 return (
                   <Robot
@@ -163,6 +218,21 @@ class App extends Component {
                   />
                 )
               })}
+
+              { this.state.lines.map((line, i) => {
+                return (
+                  <Line
+                    id={i}
+                    key={i}
+                    op={line.op}
+                    np={line.np}
+                    center={line.center}
+                    angle={line.angle}
+                    len={line.len}
+                  />
+                )
+              })}
+
             </svg>
           </div>
           <div className="four wide column">
