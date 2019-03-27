@@ -23,7 +23,8 @@ class App extends Component {
       corners: [],
       targets: [],
       lines: [],
-      drawing: true
+      drawing: true,
+      dict: {}
     }
 
     this.width = 1920
@@ -89,6 +90,7 @@ class App extends Component {
       robot.angle = angle
       robot.ip = this.ips[robot.id]
 
+      robot.len = 0
       robot.velocity = { x: 0, y: 0 }
       robot.prefSpeed = 0.5
       robot.size = 1
@@ -132,7 +134,18 @@ class App extends Component {
     }
   }
 
+  init() {
+    Move.init()
+  }
+
+  clear() {
+    this.init()
+    this.setState({ targets: [], lines: [] })
+  }
+
   onClick(event) {
+    return false
+
     if (!this.count) this.count = 0
     let x = event.clientX
     let y = event.clientY
@@ -140,43 +153,71 @@ class App extends Component {
     let max = this.state.robots.length
     let target = { x: x * 2, y: y * 2 }
 
-    if (this.state.drawing) {
-      this.linePoints.push(target)
-      let i = this.linePoints.length - 1
-      if (i > 0) {
-        let op = this.linePoints[i-1]
-        let np = this.linePoints[i]
-        let center = {
-          x: (op.x + np.x)/2,
-          y: (op.y + np.y)/2
-        }
-        let v = {
-          x: np.x - op.x,
-          y: np.y - op.y
-        }
-        let len = Math.sqrt(v.x**2 + v.y**2)
-        let angle = Math.atan2(v.x, v.y) * 180 / Math.PI
-        angle = (-angle + 180) % 360
-        let line = {
-          op: op,
-          np: np,
-          v: v,
-          center: center,
-          len: len,
-          angle: angle,
-        }
-        let lines = this.state.lines
-        lines.push(line)
-        this.setState({ lines: lines })
-      }
-    } else {
-      let i = this.count % max
-      let targets = this.state.targets
-      targets[i] = target
-      this.setState({ targets: targets })
-      this.count++
-    }
+    let i = this.count % max
+    let targets = this.state.targets
+    target.angle = 0
+    target.len = 0
+    targets[i] = target
+    this.setState({ targets: targets })
+    this.count++
   }
+
+  calculateLine() {
+    let op = this.currentLine.op
+    let np = this.currentLine.np
+    let center = {
+      x: (op.x + np.x)/2,
+      y: (op.y + np.y)/2
+    }
+    let v = {
+      x: np.x - op.x,
+      y: np.y - op.y
+    }
+    let len = Math.sqrt(v.x**2 + v.y**2)
+    let angle = Math.atan2(v.x, v.y) * 180 / Math.PI
+    angle = (-angle + 180) % 360
+    let line = {
+      op: op,
+      np: np,
+      v: v,
+      center: center,
+      len: len,
+      angle: angle,
+    }
+    return line
+  }
+
+  onMouseDown(event) {
+    this.drawing = true
+    let x = event.clientX
+    let y = event.clientY
+    let target = { x: x * 2, y: y * 2 }
+    this.currentLine = {
+      op: target,
+      np: target
+    }
+    let line = this.calculateLine()
+    let lines = this.state.lines
+    lines.push(line)
+    this.setState({ lines: lines })
+  }
+
+  onMouseMove(event) {
+    if (!this.drawing) return false
+    let x = event.clientX
+    let y = event.clientY
+    let target = { x: x * 2, y: y * 2 }
+    this.currentLine.np = target
+    let line = this.calculateLine()
+    let lines = this.state.lines
+    lines[lines.length-1] = line
+    this.setState({ lines: lines })
+  }
+
+  onMouseUp(event) {
+    this.drawing = false
+  }
+
 
   log() {
     console.log('v3')
@@ -196,6 +237,9 @@ class App extends Component {
               width={ this.width / 2 }
               height={ this.height / 2 }
               onClick={ this.onClick.bind(this) }
+              onMouseDown={ this.onMouseDown.bind(this) }
+              onMouseMove={ this.onMouseMove.bind(this) }
+              onMouseUp={ this.onMouseUp.bind(this) }
             >
               { this.state.robots.map((robot, i) => {
                 return (
@@ -205,6 +249,7 @@ class App extends Component {
                     x={robot.pos.x}
                     y={robot.pos.y}
                     angle={robot.angle}
+                    len={robot.len}
                   />
                 )
               })}
@@ -240,7 +285,12 @@ class App extends Component {
             <div className="ui teal button" onClick={ this.move.bind(this) }>
               Move
             </div>
-            <br/>
+            <div className="ui basic button" onClick={ this.clear.bind(this) }>
+              Clear
+            </div>
+            <div className="ui basic button" onClick={ this.init.bind(this) }>
+              Init
+            </div>
             <br/>
             <div>
               Robots

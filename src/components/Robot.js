@@ -19,6 +19,12 @@ class Robot extends Component {
     this.x = (this.props.x - this.width) * this.ratio
     this.y = (this.props.y - this.height) * this.ratio
     this.angle = this.props.angle
+    this.len = this.props.len / 2
+
+    let width = this.len
+    let height = this.height - 10
+    let x = (this.props.x - width) * this.ratio
+    let y = (this.props.y - height) * this.ratio
 
     return(
       <g id={this.props.id}>
@@ -26,6 +32,16 @@ class Robot extends Component {
           className="block"
           onMouseDown={this.onMouseDown.bind(this)}
         >
+          <rect
+            transform={
+              `translate(${x}, ${y}) rotate(${this.angle}, ${width/2}, ${height/2})`
+            }
+            width={ width }
+            height={ height }
+            fill={ this.color }
+            stroke={ this.stroke }
+            strokeWidth="3"
+          />
           <rect
             transform={
               `translate(${this.x}, ${this.y}) rotate(${this.angle}, ${this.width/2}, ${this.height/2})`
@@ -36,6 +52,7 @@ class Robot extends Component {
             stroke={ this.stroke }
             strokeWidth="3"
           />
+
           <rect
             transform={ `translate(${this.x},${this.y})  rotate(${this.angle}, ${this.width/2}, ${this.height/2})`}
             width="10"

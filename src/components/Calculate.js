@@ -59,9 +59,8 @@ const Calculate = {
       diff = -diff
     }
 
-    let angleDiff = (robot.angle + 90) - target.angle
-    // let lenDiff = robot.angle - target.angle
-
+    let angleDiff = target.angle - (robot.angle + 90)
+    angleDiff = Math.round(angleDiff)
     return { x: rvoVx, y: rvoVy, dist: dist, diff: diff, angleDiff: angleDiff }
   },
 

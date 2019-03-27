@@ -5,18 +5,35 @@ import Simulator from './Simulator'
 import Calculate from './Calculate'
 
 const Move = {
-  move() {
+  async move() {
+    let initTime = this.init()
+    await this.sleep(100)
+
     let res = Assign.assign()
     let distMatrix = res.distMatrix
     let rids = res.rids
     let ids = munkres(distMatrix)
+    let dict = {}
     for (let id of ids) {
       let tid = id[0]
       let rid = rids[id[1]]
       let target = App.state.targets[tid]
+      dict[rid] = tid
       console.log('rid: ' + rid, 'tid: ' + tid)
       this.moveRobot2(rid, target)
     }
+    App.setState({ dict: dict })
+  },
+
+  init() {
+    let max = 0
+    for (let robot of App.state.robots) {
+      if (robot.len > 1) {
+        this.extendRobot(robot.id, 1)
+        max = Math.max(max, robot.len)
+      }
+    }
+    return max
   },
 
   getRobotById(id) {
@@ -37,6 +54,7 @@ const Move = {
         let a1 = 0
         let b2 = 0
         if (rvo.dist > 10) {
+          // move to the target position
           if (rvo.diff < -10) { // left
             a2 = 0
             a1 = base
@@ -45,8 +63,9 @@ const Move = {
             b1 = 0
             b2 = base
           }
-        } else if (Math.abs(rvo.angleDiff) > 10) {
-          if (rvo.angleDiff > 0) { // left
+        } else if (Math.abs(rvo.angleDiff) > 2) {
+          // rotate to the target angle
+          if (rvo.angleDiff < 0) { // left
             a2 = 0
             a1 = base
           } else { // right
@@ -69,7 +88,7 @@ const Move = {
         } else {
           App.socket.send(JSON.stringify(message))
         }
-        await this.sleep(10)
+        await this.sleep(10) // 100
       // } catch (err) {
       //   console.log('lost AR marker')
       //   error++
@@ -79,6 +98,20 @@ const Move = {
     }
     console.log('finish')
     this.stop(id)
+
+    this.extendRobot(id, target.len)
+  },
+
+  extendRobot(id, len) {
+    let max = 2000
+    if (len > max) len = max
+    let command = { pos_1: len, pos_2: len }
+    let message = { command: command, ip: App.ips[id], port: App.port }
+    if (App.simulation) {
+      Simulator.extendRobot(id, command)
+    } else {
+      App.socket.send(JSON.stringify(message))
+    }
   },
 
   async sleep(time) {

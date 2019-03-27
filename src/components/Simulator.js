@@ -13,12 +13,31 @@ const Simulator = {
       robot.angle = angle
       robot.ip = App.ips[robot.id]
 
+      robot.len = 0
       robot.velocity = { x: 0, y: 0 }
       robot.prefSpeed = 0.5
       robot.size = 50
 
       robots.push(robot)
     }
+    App.setState({ robots: robots })
+  },
+
+  initRobot(id) {
+    let robots = App.state.robots
+    let robot = robots[id-1]
+    robot.len = 0
+    robots[id-1] = robot
+    App.setState({ robots: robots })
+  },
+
+  extendRobot(id, command) {
+    let robots = App.state.robots
+    let robot = robots[id-1]
+
+    let len = command.pos_1
+    robot.len = len
+    robots[id-1] = robot
     App.setState({ robots: robots })
   },
 
