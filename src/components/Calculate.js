@@ -58,7 +58,11 @@ const Calculate = {
     if (robot.angle - dir > 0 && Math.abs(robot.angle - dir) < 180) {
       diff = -diff
     }
-    return { x: rvoVx, y: rvoVy, dist: dist, diff: diff }
+
+    let angleDiff = (robot.angle + 90) - target.angle
+    // let lenDiff = robot.angle - target.angle
+
+    return { x: rvoVx, y: rvoVy, dist: dist, diff: diff, angleDiff: angleDiff }
   },
 
 

@@ -31,21 +31,30 @@ const Move = {
     while (true) {
       // try {
         let rvo = Calculate.getRvoVelocity(id, target, dt)
-        if (rvo.dist < 10) break
-
         let base = Math.min(200, rvo.dist+100)
         let a2 = base
         let b1 = base
         let a1 = 0
         let b2 = 0
-
-        if (rvo.diff < -10) { // left
-          a2 = 0
-          a1 = base
-        }
-        if (rvo.diff > 10) { // right
-          b1 = 0
-          b2 = base
+        if (rvo.dist > 10) {
+          if (rvo.diff < -10) { // left
+            a2 = 0
+            a1 = base
+          }
+          if (rvo.diff > 10) { // right
+            b1 = 0
+            b2 = base
+          }
+        } else if (Math.abs(rvo.angleDiff) > 10) {
+          if (rvo.angleDiff > 0) { // left
+            a2 = 0
+            a1 = base
+          } else { // right
+            b1 = 0
+            b2 = base
+          }
+        } else {
+          break
         }
 
         a1 = parseInt(a1)

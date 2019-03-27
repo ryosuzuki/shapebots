@@ -16,7 +16,7 @@ from cv2 import aruco
 
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-fps = 1
+fps = 0.1
 cameras = [0] # [0, 2]
 
 class HttpHandler(web.RequestHandler):
