@@ -4,15 +4,18 @@ const path = require('path')
 module.exports = {
   devtool: 'eval',
   entry: {
-    bundle: path.join(__dirname, '/src/index.js'),
+    bundle: [ '@babel/polyfill', path.join(__dirname, '/src/index.js') ],
   },
   output: {
-    path: path.join(__dirname, '/static'),
+    path: path.join(__dirname, '/build'),
     filename: 'bundle.js',
-    publicPath: '/static'
+    publicPath: '/build'
   },
   plugins: [
     new webpack.NoEmitOnErrorsPlugin(),
+    new webpack.DefinePlugin({
+      '__REACT_DEVTOOLS_GLOBAL_HOOK__': '({ isDisabled: true })'
+    }),
     new webpack.ProvidePlugin({
       $: 'jquery',
       jQuery: 'jquery'
@@ -25,7 +28,10 @@ module.exports = {
         loader: 'babel-loader',
         exclude: /node_modules/,
         options: {
-          presets: ['react', 'es2015', 'stage-3', 'stage-0']
+          presets: [
+            '@babel/preset-react',
+            '@babel/preset-env'
+          ]
         }
       }, {
         test: /\.css$/,
@@ -38,20 +44,6 @@ module.exports = {
         loader: 'html-loader',
       }
     ]
-  },
-  devServer: {
-    contentBase: '.',
-    watchContentBase: true,
-    publicPath: '/',
-    compress: true,
-    hot: false,
-    inline: true,
-    port: 8080,
-  },
-  node: {
-    fs: 'empty',
-    net: 'empty',
-    tls: 'empty'
   }
 
 }

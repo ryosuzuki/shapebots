@@ -127,7 +127,7 @@ def main():
   app = tornado.web.Application([
     (r'/', HttpHandler),
     (r'/ws', SocketHandler),
-  ], static_path='static', debug=True)
+  ], static_path='build', debug=True)
   print('start web server at localhost:8080')
   app.listen(8080)
   tornado.ioloop.IOLoop.current().start()
