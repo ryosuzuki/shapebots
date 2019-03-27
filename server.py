@@ -79,7 +79,6 @@ class SocketHandler(websocket.WebSocketHandler):
     return result
 
   def on_message(self, message):
-    print(message)
     message = json.loads(message)
     ip = message['ip']
     port = message['port']
