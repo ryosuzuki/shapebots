@@ -5,6 +5,7 @@ import Simulator from './Simulator'
 import Calculate from './Calculate'
 
 const Move = {
+  forceStop: {},
   async move() {
     let initTime = this.init()
     await this.sleep(100)
@@ -45,35 +46,75 @@ const Move = {
 
   async moveRobot2(id, target) {
     const dt = 1
+    let error = 0
+    let okCount = 0
+    let distOk = false
     while (true) {
-      // try {
+      try {
+        if (this.forceStop[id]) throw('forceStop')
         let rvo = Calculate.getRvoVelocity(id, target, dt)
-        let base = Math.min(200, rvo.dist+100)
+        let base = Math.min(400, rvo.dist+200)
         let a2 = base
         let b1 = base
         let a1 = 0
         let b2 = 0
-        if (rvo.dist > 10) {
-          // move to the target position
-          if (rvo.diff < -10) { // left
-            a2 = 0
-            a1 = base
-          }
-          if (rvo.diff > 10) { // right
-            b1 = 0
-            b2 = base
-          }
-        } else if (Math.abs(rvo.angleDiff) > 2) {
-          // rotate to the target angle
-          if (rvo.angleDiff < 0) { // left
-            a2 = 0
-            a1 = base
-          } else { // right
-            b1 = 0
-            b2 = base
+
+        let distThreshold = 30
+        let dirThreshold = 30
+        let angleThreshold = 5
+        let sleepTime = 30
+        if (App.simulation) {
+          distThreshold = 10
+          dirThreshold = 10
+          angleThreshold = 2
+          sleepTime = 10
+        }
+
+        if (!distOk) {
+          if (rvo.dist > distThreshold) {
+            let param = 200
+            if (Math.abs(rvo.diff) < 60) param = 100
+            // move to the target position
+            if (rvo.diff < -dirThreshold) { // left
+              a2 = 0
+              a1 = param
+              b1 = param
+              b2 = 0
+            }
+            if (rvo.diff > dirThreshold) { // right
+              a2 = param
+              a1 = 0
+              b1 = 0
+              b2 = param
+            }
+          } else {
+            console.log('distOk')
+            distOk = true
           }
         } else {
-          break
+          console.log('angleDiff: ' + rvo.angleDiff)
+          window.angleDiff = rvo.angleDiff
+          if (Math.abs(rvo.angleDiff) > angleThreshold) {
+            let param = 100
+            // if (Math.abs(rvo.angleDiff) < 60) param = 100
+            // rotate to the target angle
+            // if (rvo.angleDiff < 0) { // left
+              a2 = 0
+              a1 = param
+              b1 = param
+              b2 = 0
+            // } else { // right
+            //   param += 30
+            //   a2 = param
+            //   a1 = 0
+            //   b1 = 0
+            //   b2 = param
+            // }
+          } else {
+            okCount++
+            console.log('okCount: ' + okCount)
+            if (okCount > 3) break
+          }
         }
 
         a1 = parseInt(a1)
@@ -88,18 +129,18 @@ const Move = {
         } else {
           App.socket.send(JSON.stringify(message))
         }
-        await this.sleep(10) // 100
-      // } catch (err) {
-      //   console.log('lost AR marker')
-      //   error++
-      //   await this.sleep(100)
-      //   if (error > 10) break
-      // }
+        await this.sleep(sleepTime) // 100
+      } catch (err) {
+        console.log(err)
+        console.log('lost AR marker')
+        error++
+        await this.sleep(100)
+        if (error > 30) break
+      }
     }
     console.log('finish')
     this.stop(id)
-
-    this.extendRobot(id, target.len)
+    // this.extendRobot(id, target.len)
   },
 
   extendRobot(id, len) {
@@ -120,10 +161,15 @@ const Move = {
     })
   },
 
+  forceStop(id) {
+    this.forceStop[id] = true
+  },
+
   stop(id) {
     let command = { a1: 0, a2: 0, b1: 0, b2: 0 }
     let message = { command: command, ip: App.ips[id], port: App.port }
     App.socket.send(JSON.stringify(message))
+    this.forceStop[id] = false
   },
 
 

@@ -60,6 +60,8 @@ const Calculate = {
     }
 
     let angleDiff = target.angle - (robot.angle + 90)
+    angleDiff = (angleDiff + 180) % 180
+    angleDiff = Math.min(180 - angleDiff, Math.abs(angleDiff))
     angleDiff = Math.round(angleDiff)
     return { x: rvoVx, y: rvoVy, dist: dist, diff: diff, angleDiff: angleDiff }
   },
@@ -70,9 +72,11 @@ const Calculate = {
     let a = this.getRobotById(id)
     let max = App.state.robots.length
     for (let i = 1; i <= max; i++) {
-      if (i == id) continue;
+      if (i === id) continue
 
       const b = this.getRobotById(i)
+      if (b === null) continue
+
       const ux = 2 * vx - a.velocity.x - b.velocity.x
       const uy = 2 * vy - a.velocity.y - b.velocity.y
       const dx = b.pos.x - a.pos.x
