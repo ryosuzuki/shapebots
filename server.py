@@ -16,7 +16,7 @@ from cv2 import aruco
 
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-fps = 30
+fps = 1
 cameras = [0] # [0, 2]
 
 class HttpHandler(web.RequestHandler):
@@ -127,7 +127,7 @@ def main():
   app = tornado.web.Application([
     (r'/', HttpHandler),
     (r'/ws', SocketHandler),
-  ], static_path='build', debug=True)
+  ], static_path='static', debug=True)
   print('start web server at localhost:8080')
   app.listen(8080)
   tornado.ioloop.IOLoop.current().start()
