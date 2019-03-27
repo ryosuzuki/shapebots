@@ -3,10 +3,10 @@ const Assign = {
   assign() {
     let distMatrix = []
     let rids = []
-    for (let point of App.state.points) {
+    for (let target of App.state.targets) {
       let distArray = []
       for (let robot of App.state.robots) {
-        let dist = Math.sqrt((point.x - robot.pos.x)**2 + (point.y - robot.pos.y)**2)
+        let dist = Math.sqrt((target.x - robot.pos.x)**2 + (target.y - robot.pos.y)**2)
         distArray.push(dist)
         rids.push(robot.id)
       }

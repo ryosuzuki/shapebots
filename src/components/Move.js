@@ -2,69 +2,48 @@
 import munkres from 'munkres-js'
 import Assign from './Assign'
 import Simulator from './Simulator'
+import Calculate from './Calculate'
 
 const Move = {
-
   move() {
     let res = Assign.assign()
     let distMatrix = res.distMatrix
     let rids = res.rids
     let ids = munkres(distMatrix)
     for (let id of ids) {
-      let pid = id[0]
+      let tid = id[0]
       let rid = rids[id[1]]
-      let point = App.state.points[pid]
-      console.log('rid: ' + rid, 'pid: ' + pid)
-      this.moveRobot(rid, point)
+      let target = App.state.targets[tid]
+      console.log('rid: ' + rid, 'tid: ' + tid)
+      this.moveRobot2(rid, target)
     }
   },
 
-  async moveRobot(id, point) {
-    let error = 0
-    let prev
-    let Ib = 200
-    let Ip = 200
+  getRobotById(id) {
+    for (let robot of App.state.robots) {
+      if (robot.id === id) return robot
+    }
+    return null
+  },
+
+  async moveRobot2(id, target) {
+    const dt = 1
     while (true) {
       // try {
-        let res = this.calculate(id, point)
-        if (res.dist < 10) break
+        let rvo = Calculate.getRvoVelocity(id, target, dt)
+        if (rvo.dist < 10) break
 
-        // forward: a2, b1, right: a2, left: b1
-        let base = Math.min(Ib, res.dist+100)
+        let base = Math.min(200, rvo.dist+100)
         let a2 = base
         let b1 = base
         let a1 = 0
         let b2 = 0
-        let param = 5
 
-        let unit = (90 - Math.abs(res.diff)) / 90
-        let Kd = 0.5
-        let D = !prev ? 0 : unit - prev
-        prev = unit
-        Ib += 20
-        Ip += 10
-        let Kp = Math.min(Ip, base)
-        console.log(Kp)
-        /*
-        Ryo's note: If Kp is too high, it will be overshooting. Thus, start from a small value at the beginning to avoid overshooting, while gradually increasing the value once it starts adjusting the path and angle.
-        */
-
-        // if (res.diff < 0) { // left
-        //   a2 = Math.max(unit - Kd*D, 0) * Kp
-        //   a1 = Math.max(-unit - Kd*D, 0) * Kp
-        // } else { // right
-        //   b1 = Math.max(unit - Kd*D, 0) * Kp
-        //   b2 = Math.max(-unit - Kd*D, 0) * Kp
-        // }
-
-        /*
-        Simlify
-        */
-        if (res.diff < -10) { // left
+        if (rvo.diff < -10) { // left
           a2 = 0
           a1 = base
         }
-        if (res.diff > 10) { // right
+        if (rvo.diff > 10) { // right
           b1 = 0
           b2 = base
         }
@@ -104,33 +83,6 @@ const Move = {
     let message = { command: command, ip: App.ips[id], port: App.port }
     App.socket.send(JSON.stringify(message))
   },
-
-  calculate(id, point) {
-    let robot = this.getRobot(id)
-    let dir = Math.atan2(point.x - robot.pos.x, point.y - robot.pos.y) * 180 / Math.PI
-    dir = (-dir + 180) % 360
-    let diff = Math.min((360) - Math.abs(robot.angle - dir), Math.abs(robot.angle - dir))
-    // 1 - 359 = -358 < 0 && 358 > 180 -> -2
-    // 1 - 180 = -179 < 0 && 179 < 180 -> +179
-    // 15 - 1  =  14  > 0 && 14  < 180 -> -14
-    // 1 - 200 = -199 < 0 && 199 > 180 -> -161
-    // 359 - 1 =  358 > 0 && 358 > 180 -> +2
-    if (robot.angle - dir < 0 && Math.abs(robot.angle - dir) > 180) {
-      diff = -diff
-    }
-    if (robot.angle - dir > 0 && Math.abs(robot.angle - dir) < 180) {
-      diff = -diff
-    }
-    let dist = Math.sqrt((point.x - robot.pos.x)**2 + (point.y - robot.pos.y)**2)
-    return { diff: diff, dist: dist }
-  },
-
-  getRobot(id) {
-    for (let robot of App.state.robots) {
-      if (robot.id === id) return robot
-    }
-    return null
-  }
 
 
 }

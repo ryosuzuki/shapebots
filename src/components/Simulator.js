@@ -3,7 +3,7 @@
 const Simulator = {
   initRobots() {
     let robots = []
-    for (let id = 1; id < 10; id++) {
+    for (let id = 1; id <= 10; id++) {
       let robot = {}
       robot.id = id
       let x = Math.random() * App.width
@@ -12,6 +12,11 @@ const Simulator = {
       let angle = Math.random() * 360
       robot.angle = angle
       robot.ip = App.ips[robot.id]
+
+      robot.velocity = { x: 0, y: 0 }
+      robot.prefSpeed = 0.5
+      robot.size = 50
+
       robots.push(robot)
     }
     App.setState({ robots: robots })

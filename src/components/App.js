@@ -4,7 +4,7 @@ import _ from 'lodash'
 const socket = new WebSocket('ws://localhost:8080/ws');
 
 import Robot from './Robot'
-import Point from './Point'
+import Target from './Target'
 
 import Move from './Move'
 import Simulator from './Simulator'
@@ -20,7 +20,7 @@ class App extends Component {
       robots: [],
       ids: [],
       corners: [],
-      points: []
+      targets: []
     }
 
     this.width = 1920
@@ -84,6 +84,11 @@ class App extends Component {
       let angle = (a1 + 360 + 135) % 360
       robot.angle = angle
       robot.ip = this.ips[robot.id]
+
+      robot.velocity = { x: 0, y: 0 }
+      robot.prefSpeed = 0.5
+      robot.size = 1
+
       robots.push(robot)
       i++
     }
@@ -114,10 +119,10 @@ class App extends Component {
 
     let max = this.state.robots.length
     let i = this.count % max
-    let point = { x: x * 2, y: y * 2 }
-    let points = this.state.points
-    points[i] = point
-    this.setState({ points: points })
+    let target = { x: x * 2, y: y * 2 }
+    let targets = this.state.targets
+    targets[i] = target
+    this.setState({ targets: targets })
     this.count++
   }
 
@@ -148,13 +153,13 @@ class App extends Component {
                 )
               })}
 
-              { this.state.points.map((point, i) => {
+              { this.state.targets.map((target, i) => {
                 return (
-                  <Point
+                  <Target
                     id={i}
                     key={i}
-                    x={point.x}
-                    y={point.y}
+                    x={target.x}
+                    y={target.y}
                   />
                 )
               })}

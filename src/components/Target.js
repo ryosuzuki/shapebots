@@ -1,13 +1,13 @@
 import React, { Component } from 'react'
 
-class Point extends Component {
+class Target extends Component {
   constructor(props) {
     super(props)
   }
 
   render() {
     return(
-      <g className="point" id={this.props.id}>
+      <g className="target" id={this.props.id}>
         <circle
           cx={this.props.x / 2}
           cy={this.props.y / 2}
@@ -22,4 +22,4 @@ class Point extends Component {
   }
 }
 
-export default Point
+export default Target
