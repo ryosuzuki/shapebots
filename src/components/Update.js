@@ -14,6 +14,9 @@ const Update = {
     for (let id of ids) {
       let robot = {}
       robot.id = id[0]
+      if (robot.id < 5) {
+        robot.id = robot.id + 1
+      }
       let points = corners[i][0]
       let x = _.sum(points.map((point) => {
         return point[0]

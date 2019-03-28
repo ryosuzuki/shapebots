@@ -89,7 +89,7 @@ class App extends Component {
   }
 
   log() {
-    console.log('v3')
+    console.log('v1')
   }
 
   animate() {

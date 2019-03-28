@@ -7,8 +7,8 @@ import Calculate from './Calculate'
 const Move = {
   forceStop: {},
   async move() {
-    let initTime = this.init()
-    await this.sleep(100)
+    this.init()
+    await this.sleep(1000)
 
     let res = Assign.assign()
     let distMatrix = res.distMatrix
@@ -27,14 +27,9 @@ const Move = {
   },
 
   init() {
-    let max = 0
     for (let robot of App.state.robots) {
-      if (robot.len > 1) {
-        this.extendRobot(robot.id, 1)
-        max = Math.max(max, robot.len)
-      }
+      this.extendRobot(robot.id, 1)
     }
-    return max
   },
 
   getRobotById(id) {
@@ -140,17 +135,28 @@ const Move = {
     }
     console.log('finish')
     this.stop(id)
-    // this.extendRobot(id, target.len)
+    if (error <= 30){
+      this.extendRobot(id, target.len)
+    }
   },
 
   extendRobot(id, len) {
-    let max = 2000
-    if (len > max) len = max
-    let command = { pos_1: len, pos_2: len }
-    let message = { command: command, ip: App.ips[id], port: App.port }
     if (App.simulation) {
+      let command = { pos_1: len, pos_2: len }
       Simulator.extendRobot(id, command)
     } else {
+      let reel = parseInt((len - 100) * 10)
+      let max = 4000
+      if (reel < 0) reel = 1
+      if (reel > max) reel = max
+      console.log('extend: ' + reel)
+      let command = { pos_1: reel, pos_2: reel }
+      let message = { command: command, ip: App.ips[id], port: App.port }
+      // 0 -> 97
+      // 1000 -> 217
+      // 2000 -> 306
+      // 3000 -> 391
+      // 4000 -> 480
       App.socket.send(JSON.stringify(message))
     }
   },
