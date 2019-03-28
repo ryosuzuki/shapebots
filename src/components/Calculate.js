@@ -7,6 +7,16 @@ const Calculate = {
     return null
   },
 
+  calculate(id, target) {
+    const robot = this.getRobotById(id)
+    let dx = target.x - robot.pos.x
+    let dy = target.y - robot.pos.y
+    let dist = Math.sqrt(dx**2 + dy**2)
+    let angleDiff = target.angle - (robot.angle + 90)
+    angleDiff = (angleDiff + 180) % 180
+    return { dist: dist, angleDiff: angleDiff }
+  },
+
   getRvoVelocity(id, target, dt) {
     const acceleration = 1
     const avoidanceTendency = 10
@@ -61,8 +71,6 @@ const Calculate = {
 
     let angleDiff = target.angle - (robot.angle + 90)
     angleDiff = (angleDiff + 180) % 180
-    angleDiff = Math.min(180 - angleDiff, Math.abs(angleDiff))
-    angleDiff = Math.round(angleDiff)
     return { x: rvoVx, y: rvoVy, dist: dist, diff: diff, angleDiff: angleDiff }
   },
 

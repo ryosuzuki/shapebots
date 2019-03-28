@@ -11,8 +11,8 @@ let ips = {
   10: '128.138.221.102'
 }
 
-let id = 9
-let val = 500
+let id = 4
+let val = 100
 
 console.log('start')
 const sendCommand = function(json) {
@@ -50,7 +50,7 @@ process.stdin.on('keypress', function (ch, key) {
       sendCommand(left)
       break
     case 'right':
-      let right = { a1: 0, a2: val, b1: 0, b2: val }
+      let right = { a1: 0, a2: val+30, b1: 0, b2: val+30 }
       sendCommand(right)
       break
     default:

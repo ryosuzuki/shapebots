@@ -49,13 +49,13 @@ const Move = {
         Ryo's note: If Kp is too high, it will be overshooting. Thus, start from a small value at the beginning to avoid overshooting, while gradually increasing the value once it starts adjusting the path and angle.
         */
 
-        // if (res.diff < 0) { // left
-        //   a2 = Math.max(unit - Kd*D, 0) * Kp
-        //   a1 = Math.max(-unit - Kd*D, 0) * Kp
-        // } else { // right
-        //   b1 = Math.max(unit - Kd*D, 0) * Kp
-        //   b2 = Math.max(-unit - Kd*D, 0) * Kp
-        // }
+        if (res.diff < 0) { // left
+          a2 = Math.max(unit - Kd*D, 0) * Kp
+          a1 = Math.max(-unit - Kd*D, 0) * Kp
+        } else { // right
+          b1 = Math.max(unit - Kd*D, 0) * Kp
+          b2 = Math.max(-unit - Kd*D, 0) * Kp
+        }
 
         /*
         Simlify

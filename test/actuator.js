@@ -11,7 +11,7 @@ let ips = {
   10: '128.138.221.102'
 }
 
-let id = 10
+let id = 4
 let max = 5000
 
 const keypress = require('keypress')

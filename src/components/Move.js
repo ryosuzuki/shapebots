@@ -40,19 +40,13 @@ const Move = {
   },
 
   async moveRobot2(id, target) {
-    const dt = 1
     let error = 0
     let okCount = 0
     let distOk = false
     while (true) {
       try {
         if (this.forceStop[id]) throw('forceStop')
-        let rvo = Calculate.getRvoVelocity(id, target, dt)
-        let base = Math.min(400, rvo.dist+200)
-        let a2 = base
-        let b1 = base
-        let a1 = 0
-        let b2 = 0
+        let res = Calculate.calculate(id, target)
 
         let distThreshold = 30
         let dirThreshold = 30
@@ -65,77 +59,108 @@ const Move = {
           sleepTime = 10
         }
 
-        if (!distOk) {
-          if (rvo.dist > distThreshold) {
-            let param = 200
-            if (Math.abs(rvo.diff) < 60) param = 100
-            // move to the target position
-            if (rvo.diff < -dirThreshold) { // left
+        let base = Math.min(200, res.dist+100)
+        let a2 = base
+        let b1 = base
+        let a1 = 0
+        let b2 = 0
+
+        if (res.dist > distThreshold) {
+          const dt = 1
+          let rvo = Calculate.getRvoVelocity(id, target, dt)
+          let param = 120
+          if (rvo.diff < -dirThreshold) { // left
+            a2 = 0
+            a1 = param
+            b1 = param
+            b2 = 0
+          }
+          if (rvo.diff > dirThreshold) { // right
+            param += 30
+            a2 = param
+            a1 = 0
+            b1 = 0
+            b2 = param
+          }
+          let command = { a1: a1, a2: a2, b1: b1, b2: b2 }
+          let message = { command: command, ip: App.ips[id], port: App.port }
+          if (App.simulation) {
+            Simulator.moveRobot(id, command)
+          } else {
+            App.socket.send(JSON.stringify(message))
+          }
+          await this.sleep(sleepTime) // 100
+
+        } else {
+          distOk = true
+          sleepTime = 10
+          let angleDiff = Math.min(180 - res.angleDiff, Math.abs(res.angleDiff))
+          if (Math.abs(angleDiff) > angleThreshold) {
+            let param = 120
+            // param = Math.min(param, angleDiff * 5)
+            // -90 < angle <  -1 -> left
+            //   0 < angle <  90 -> right
+            //  90 < angle < 180 -> left
+            console.log('angleDiff: ' +  res.angleDiff)
+            if (res.angleDiff < 0 || res.angleDiff > 90) { // left
               a2 = 0
               a1 = param
-              b1 = param
+              b1 = param // angleDiff * 2
               b2 = 0
-            }
-            if (rvo.diff > dirThreshold) { // right
-              a2 = param
+            } else { // right
+              param += 30
+              a2 = param // angleDiff * 2
               a1 = 0
               b1 = 0
               b2 = param
             }
           } else {
-            console.log('distOk')
-            distOk = true
-          }
-        } else {
-          console.log('angleDiff: ' + rvo.angleDiff)
-          window.angleDiff = rvo.angleDiff
-          if (Math.abs(rvo.angleDiff) > angleThreshold) {
-            let param = 100
-            // if (Math.abs(rvo.angleDiff) < 60) param = 100
-            // rotate to the target angle
-            // if (rvo.angleDiff < 0) { // left
-              a2 = 0
-              a1 = param
-              b1 = param
-              b2 = 0
-            // } else { // right
-            //   param += 30
-            //   a2 = param
-            //   a1 = 0
-            //   b1 = 0
-            //   b2 = param
-            // }
-          } else {
+            a1 = 0
+            a2 = 0
+            b1 = 0
+            b2 = 0
             okCount++
             console.log('okCount: ' + okCount)
             if (okCount > 3) break
           }
-        }
 
-        a1 = parseInt(a1)
-        a2 = parseInt(a2)
-        b1 = parseInt(b1)
-        b2 = parseInt(b2)
-        let command = { a1: a1, a2: a2, b1: b1, b2: b2 }
-        let message = { command: command, ip: App.ips[id], port: App.port }
+          let command = { a1: a1, a2: a2, b1: b1, b2: b2 }
+          let message = { command: command, ip: App.ips[id], port: App.port }
+          if (App.simulation) {
+            Simulator.moveRobot(id, command)
+            await this.sleep(sleepTime) // 100
+          } else {
+            App.socket.send(JSON.stringify(message))
 
-        if (App.simulation) {
-          Simulator.moveRobot(id, command)
-        } else {
-          App.socket.send(JSON.stringify(message))
+            if (Math.abs(angleDiff) > 60) {
+              sleepTime = 60
+            } else {
+              sleepTime  = 30
+            }
+            sleepTime = Math.abs(angleDiff)
+            await this.sleep(sleepTime) // 100
+
+            command = { a1: 0, a2: 0, b1: 0, b2: 0 }
+            message = { command: command, ip: App.ips[id], port: App.port }
+            App.socket.send(JSON.stringify(message))
+            await this.sleep(30) // 100
+          }
         }
-        await this.sleep(sleepTime) // 100
       } catch (err) {
         console.log(err)
         console.log('lost AR marker')
         error++
         await this.sleep(100)
-        if (error > 30) break
+        if (error > 20) break
       }
     }
     console.log('finish')
     this.stop(id)
-    if (error <= 30){
+    // await this.sleep(1000)
+    let robot = this.getRobotById(id)
+    let angleDiff = target.angle - (robot.angle + 90)
+    console.log(angleDiff)
+    if (error <= 20){
       this.extendRobot(id, target.len)
     }
   },

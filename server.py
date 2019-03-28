@@ -16,7 +16,7 @@ from cv2 import aruco
 
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-fps = 30
+fps = 60
 cameras = [0] # [0, 2]
 
 class HttpHandler(web.RequestHandler):
@@ -104,7 +104,7 @@ class SocketHandler(websocket.WebSocketHandler):
     parameters = aruco.DetectorParameters_create()
     # Thresholding
     parameters.adaptiveThreshWinSizeMin = 3 # >= 3
-    parameters.adaptiveThreshWinSizeStep = 10 # 10
+    parameters.adaptiveThreshWinSizeStep = 3 # 10
     parameters.adaptiveThreshConstant = 7 # 7
     # Contour Filtering
     parameters.minMarkerPerimeterRate = 0.03 # 0.03
