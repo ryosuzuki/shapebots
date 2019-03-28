@@ -16,12 +16,20 @@ from cv2 import aruco
 
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-fps = 60
+fps = 0.1 # 60
 cameras = [0] # [0, 2]
 
 class HttpHandler(web.RequestHandler):
   def get(self):
     self.render('./index.html')
+
+  def post(self):
+    data = tornado.escape.json_decode(self.request.body)
+    name = data['name']
+    path = 'static/keyframes/' + name + '.json'
+    data = json.dumps(data['keyframes'], sort_keys=True, indent=2)
+    with open(path, mode='w') as f:
+      f.write(data)
 
   def set_extra_headers(self, path):
     self.set_header('Cache-control', 'no-cache')

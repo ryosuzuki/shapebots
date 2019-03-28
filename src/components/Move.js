@@ -55,7 +55,7 @@ const Move = {
         if (App.simulation) {
           distThreshold = 10
           dirThreshold = 10
-          angleThreshold = 2
+          angleThreshold = 5
           sleepTime = 10
         }
 

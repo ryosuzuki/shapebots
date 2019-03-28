@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import _ from 'lodash'
+import FileSaver from 'file-saver'
 
 const socket = new WebSocket('ws://localhost:8080/ws');
 
@@ -25,7 +26,8 @@ class App extends Component {
       corners: [],
       targets: [],
       lines: [],
-      dict: {}
+      dict: {},
+      keyframes: []
     }
 
     this.width = 1920
@@ -44,12 +46,11 @@ class App extends Component {
       10: '128.138.221.102'
     }
 
-    this.simulation = false
+    this.simulation = true //false
     this.log()
   }
 
   componentDidMount() {
-    // this.frameId = requestAnimationFrame(this.animate)
     if (this.simulation) {
       Simulator.initRobots()
     } else {
@@ -92,8 +93,72 @@ class App extends Component {
     console.log('v1')
   }
 
-  animate() {
-    this.frameId = window.requestAnimationFrame(this.animate)
+  add() {
+    let targets = []
+    for (let line of this.state.lines) {
+      let target = {
+        x: line.center.x,
+        y: line.center.y,
+        angle: line.angle,
+        len: line.len
+      }
+      targets.push(target)
+    }
+    let keyframes = this.state.keyframes
+    keyframes.push({ targets: targets, lines: this.state.lines })
+    this.setState({ keyframes: keyframes })
+  }
+
+  save() {
+    let name = window.prompt('Enter file name', '');
+    let json = {
+      name: name,
+      keyframes: this.state.keyframes
+    }
+    console.log(json)
+    let str = JSON.stringify(json)
+    const request = new XMLHttpRequest()
+    request.open('POST', '/', true)
+    request.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
+    request.send(str)
+  }
+
+  load() {
+    const showOpenFileDialog = () => {
+      return new Promise(resolve => {
+        const input = document.createElement('input');
+        input.type = 'file'
+        input.accept = '.json, application/json'
+        input.onchange = event => { resolve(event.target.files[0]) }
+        input.click()
+      })
+    }
+
+    const readAsText = file => {
+      return new Promise(resolve => {
+        const reader = new FileReader()
+        reader.readAsText(file)
+        reader.onload = () => { resolve(reader.result) }
+      })
+    }
+
+    (async () => {
+      const file = await showOpenFileDialog()
+      const content = await readAsText(file)
+      let json = JSON.parse(content)
+      console.log(json)
+      this.setState({ keyframes: json })
+    })()
+  }
+
+  animate(event) {
+    let i = event.target.value
+    let targets = this.state.keyframes[i].targets
+    let lines = this.state.keyframes[i].lines
+
+    this.setState({ targets: targets, lines: lines }, () => {
+      Move.move()
+    })
   }
 
   render() {
@@ -133,8 +198,22 @@ class App extends Component {
             <div className="ui teal button" onClick={ this.move.bind(this) }>Move</div>
             <div className="ui basic button" onClick={ this.clear.bind(this) }>Clear</div>
             <div className="ui basic button" onClick={ this.init.bind(this) }>Init</div>
-            <br/>
             <div className="ui basic button" onClick={ this.stop.bind(this) }>Stop</div>
+            <br/>
+            <div className="ui divider" />
+            <div className="ui basic button" onClick={ this.add.bind(this) }>Add</div>
+            <div className="ui basic button" onClick={ this.save.bind(this) }>Save</div>
+            <div className="ui basic button" onClick={ this.load.bind(this) }>Load</div>
+            <div className="field">
+              <select className="ui dropdown" onChange={this.animate.bind(this)}>
+                <option value="">Choose</option>
+                { this.state.keyframes.map((keyframe, i) => {
+                  return (
+                    <option key={ i } value={ i }>{`keyframe-${i}`}</option>
+                  )
+                })}
+              </select>
+            </div>
             <br/>
             <div>
               Robots
@@ -144,20 +223,6 @@ class App extends Component {
         </div>
       </div>
     )
-  }
-}
-
-window.addEventListener('resize', () => {
-  // window.app.resize()
-}, false)
-
-function mapStateToProps(state) {
-  return state
-}
-
-function mapDispatchToProps(dispatch) {
-  return {
-    actions: bindActionCreators(actions, dispatch)
   }
 }
 

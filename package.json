@@ -21,6 +21,7 @@
   "dependencies": {
     "async": "^2.5.0",
     "dgram": "^1.0.1",
+    "file-saver": "^2.0.1",
     "glob": "^7.1.2",
     "jquery": "^3.2.1",
     "keypress": "^0.2.1",

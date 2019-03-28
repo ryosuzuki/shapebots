@@ -51,6 +51,8 @@ const Mouse = {
     let len = Math.sqrt(v.x**2 + v.y**2)
     let angle = Math.atan2(v.x, v.y) * 180 / Math.PI
     angle = (-angle + 180) % 360
+    len = Math.round(len)
+    angle = Math.round(angle)
     let line = {
       op: op,
       np: np,
