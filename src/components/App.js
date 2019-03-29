@@ -1,23 +1,24 @@
 import React, { Component } from 'react'
 import _ from 'lodash'
-import FileSaver from 'file-saver'
-
-const socket = new WebSocket('ws://localhost:8080/ws');
 
 import Robot from './Robot'
 import Target from './Target'
 import Line from './Line'
-
 import Move from './Move'
 import Mouse from './Mouse'
 import Update from './Update'
 import Simulator from './Simulator'
+import Animation from './Animation'
+
+const socket = new WebSocket('ws://localhost:8080/ws');
 
 class App extends Component {
   constructor(props) {
     super(props)
     window.app = this
     window.App = this
+
+    this.simulation = false
 
     this.socket = socket
     this.state = {
@@ -46,7 +47,6 @@ class App extends Component {
       10: '128.138.221.102'
     }
 
-    this.simulation = true //false
     this.log()
   }
 
@@ -74,91 +74,8 @@ class App extends Component {
     })
   }
 
-  init() {
-    Move.init()
-  }
-
-  clear() {
-    this.init()
-    this.setState({ targets: [], lines: [] })
-  }
-
-  stop() {
-    for (let id = 1; id <= 10; id++) {
-      Move.forceStop(id)
-    }
-  }
-
   log() {
     console.log('v1')
-  }
-
-  add() {
-    let targets = []
-    for (let line of this.state.lines) {
-      let target = {
-        x: line.center.x,
-        y: line.center.y,
-        angle: line.angle,
-        len: line.len
-      }
-      targets.push(target)
-    }
-    let keyframes = this.state.keyframes
-    keyframes.push({ targets: targets, lines: this.state.lines })
-    this.setState({ keyframes: keyframes })
-  }
-
-  save() {
-    let name = window.prompt('Enter file name', '');
-    let json = {
-      name: name,
-      keyframes: this.state.keyframes
-    }
-    console.log(json)
-    let str = JSON.stringify(json)
-    const request = new XMLHttpRequest()
-    request.open('POST', '/', true)
-    request.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
-    request.send(str)
-  }
-
-  load() {
-    const showOpenFileDialog = () => {
-      return new Promise(resolve => {
-        const input = document.createElement('input');
-        input.type = 'file'
-        input.accept = '.json, application/json'
-        input.onchange = event => { resolve(event.target.files[0]) }
-        input.click()
-      })
-    }
-
-    const readAsText = file => {
-      return new Promise(resolve => {
-        const reader = new FileReader()
-        reader.readAsText(file)
-        reader.onload = () => { resolve(reader.result) }
-      })
-    }
-
-    (async () => {
-      const file = await showOpenFileDialog()
-      const content = await readAsText(file)
-      let json = JSON.parse(content)
-      console.log(json)
-      this.setState({ keyframes: json })
-    })()
-  }
-
-  animate(event) {
-    let i = event.target.value
-    let targets = this.state.keyframes[i].targets
-    let lines = this.state.keyframes[i].lines
-
-    this.setState({ targets: targets, lines: lines }, () => {
-      Move.move()
-    })
   }
 
   render() {
@@ -194,18 +111,18 @@ class App extends Component {
 
             </svg>
           </div>
-          <div className="four wide column">
-            <div className="ui teal button" onClick={ this.move.bind(this) }>Move</div>
-            <div className="ui basic button" onClick={ this.clear.bind(this) }>Clear</div>
-            <div className="ui basic button" onClick={ this.init.bind(this) }>Init</div>
-            <div className="ui basic button" onClick={ this.stop.bind(this) }>Stop</div>
+          <div id="menu" className="four wide column">
+            <div className="ui teal button" onClick={ Move.start.bind(Move) }>Move</div>
+            <div className="ui basic button" onClick={ Move.clear.bind(Move) }>Clear</div>
+            <div className="ui basic button" onClick={ Move.init.bind(Move) }>Init</div>
+            <div className="ui basic button" onClick={ Move.stopAll.bind(Move) }>Stop</div>
             <br/>
             <div className="ui divider" />
-            <div className="ui basic button" onClick={ this.add.bind(this) }>Add</div>
-            <div className="ui basic button" onClick={ this.save.bind(this) }>Save</div>
-            <div className="ui basic button" onClick={ this.load.bind(this) }>Load</div>
+            <div className="ui basic button" onClick={ Animation.add.bind(Animation) }>Add</div>
+            <div className="ui basic button" onClick={ Animation.save.bind(Animation) }>Save</div>
+            <div className="ui basic button" onClick={ Animation.load.bind(Animation) }>Load</div>
             <div className="field">
-              <select className="ui dropdown" onChange={this.animate.bind(this)}>
+              <select className="ui dropdown" onChange={Animation.start.bind(Animation)}>
                 <option value="">Choose</option>
                 { this.state.keyframes.map((keyframe, i) => {
                   return (

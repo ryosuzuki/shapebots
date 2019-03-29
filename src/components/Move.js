@@ -6,8 +6,36 @@ import Calculate from './Calculate'
 
 const Move = {
   forceStop: {},
+
+  start() {
+    let targets = []
+    for (let line of App.state.lines) {
+      let target = {
+        x: line.center.x,
+        y: line.center.y,
+        angle: line.angle,
+        len: line.len
+      }
+      targets.push(target)
+    }
+    App.setState({ targets: targets }, () => {
+      this.move()
+    })
+  },
+
+  clear() {
+    // this.init()
+    App.setState({ targets: [], lines: [] })
+  },
+
+  stopAll() {
+    for (let id = 1; id <= 10; id++) {
+      Move.forceStop(id)
+    }
+  },
+
   async move() {
-    this.init()
+    // this.init()
     await this.sleep(1000)
 
     let res = Assign.assign()

@@ -11,7 +11,7 @@ let ips = {
   10: '128.138.221.102'
 }
 
-let id = 4
+let id = 1
 let val = 100
 
 console.log('start')
