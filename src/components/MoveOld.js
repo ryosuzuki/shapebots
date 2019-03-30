@@ -5,6 +5,47 @@ import Simulator from './Simulator'
 
 const Move = {
 
+  /*
+  let angleDiff = Math.min(180 - res.angleDiff, Math.abs(res.angleDiff))
+
+  if (Math.abs(angleDiff) > angleThreshold) {
+    let param = 120
+    // param = Math.min(param, angleDiff * 5)
+    // -90 < angle <  -1 -> left
+    //   0 < angle <  90 -> right
+    //  90 < angle < 180 -> left
+    angleDiff = (360 + res.angleDiff) % 360
+    console.log('angleDiff: ' +  angleDiff)
+    let dir
+    if (0 <= angleDiff < 90) {
+      dir = 'right'
+    }
+    if (90 <= angleDiff < 270)
+
+    if (res.angleDiff < 0 || res.angleDiff > 90) { // left
+      a2 = 0
+      a1 = param
+      b1 = param // angleDiff * 2
+      b2 = 0
+    } else { // right
+      param += 30
+      a2 = param // angleDiff * 2
+      a1 = 0
+      b1 = 0
+      b2 = param
+    }
+  } else {
+    a1 = 0
+    a2 = 0
+    b1 = 0
+    b2 = 0
+    okCount++
+    console.log('okCount: ' + okCount)
+    if (okCount > 3) break
+  }
+  */
+
+
   move() {
     let res = Assign.assign()
     let distMatrix = res.distMatrix
