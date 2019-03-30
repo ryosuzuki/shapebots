@@ -18,8 +18,8 @@ Scale up Square
 
 const Move = {
   forceStop: {},
-  enableExtend: true,
-  example: 'cleanup',
+  enableExtend: false,
+  example: '',
 
   start() {
     let targets = []
@@ -100,33 +100,67 @@ const Move = {
           distThreshold = 10
           dirThreshold = 10
           angleThreshold = 5
-          sleepTime = 30
+          sleepTime = 10
         }
 
         let base = Math.min(400, res.dist+100)
         if (this.example === 'cleanup') base = 800
+
+        let a1 = 0
         let a2 = base
         let b1 = base
-        let a1 = 0
         let b2 = 0
 
         if (res.dist > distThreshold) {
           const dt = 1
           let rvo = Calculate.getRvoVelocity(id, target, dt)
           let param = 120
-          if (rvo.diff < -dirThreshold) { // left
-            a2 = 0
-            a1 = param
-            b1 = param
-            b2 = 0
+          let dir
+          if (0 <= rvo.diff < dirThreshold) {
+            dir = 'forward'
           }
-          if (rvo.diff > dirThreshold) { // right
-            param += 30
-            a2 = param
-            a1 = 0
-            b1 = 0
-            b2 = param
+          if (dirThreshold <= rvo.diff && rvo.diff < 90) {
+            dir = 'right'
           }
+          if (90 <= rvo.diff && rvo.diff < 180 - dirThreshold) {
+            dir = 'left'
+          }
+          if (180 - dirThreshold <= rvo.diff && rvo.diff < 180 + dirThreshold) {
+            dir = 'backward'
+          }
+          if (180 + dirThreshold <= rvo.diff && rvo.diff < 270) {
+            dir = 'right'
+          }
+          if (270 <= rvo.diff && rvo.diff < 360 - dirThreshold) {
+            dir = 'left'
+          }
+          if (360 - dirThreshold <= rvo.diff) {
+            dir = 'forward'
+          }
+
+          switch (dir) {
+            case 'forward':
+              break
+            case 'backward':
+              a1 = base
+              a2 = 0
+              b1 = 0
+              b2 = base
+              break
+            case 'left':
+              a1 = param
+              a2 = 0
+              b1 = param
+              b2 = 0
+              break
+            case 'right':
+              param += 30
+              a1 = 0
+              a2 = param
+              b1 = 0
+              b2 = param
+          }
+
           let command = { a1: a1, a2: a2, b1: b1, b2: b2 }
           let message = { command: command, ip: App.ips[id], port: App.port }
           if (App.simulation) {

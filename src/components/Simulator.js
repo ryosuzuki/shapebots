@@ -1,9 +1,11 @@
 
 
 const Simulator = {
+  max: 1,
+
   initRobots() {
     let robots = []
-    for (let id = 1; id <= 10; id++) {
+    for (let id = 1; id <= this.max; id++) {
       let robot = {}
       robot.id = id
       let x = Math.random() * App.width
@@ -59,16 +61,15 @@ const Simulator = {
 
     let unit = 5
     let v = { x: 0, y: 0 }
-    if (a2 === b1) {
+    if (a2 === b1 && a2 > 0) {
       v.x = unit * Math.cos(rad)
       v.y = unit * Math.sin(rad)
-    }
-
-    if (a2 > b1) {
+    } else if (a1 === b2 && a1 > 0) {
+      v.x = - unit * Math.cos(rad)
+      v.y = - unit * Math.sin(rad)
+    } else if (a2 > b1) {
       angle += 5
-    }
-
-    if (a2 < b1) {
+    } else if (a2 < b1) {
       angle -= 5
     }
 

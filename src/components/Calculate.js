@@ -68,6 +68,7 @@ const Calculate = {
     if (robot.angle - dir > 0 && Math.abs(robot.angle - dir) < 180) {
       diff = -diff
     }
+    diff = (diff + 360) % 360
 
     let angleDiff = target.angle - (robot.angle + 90)
     angleDiff = (angleDiff + 180) % 180
