@@ -4,8 +4,22 @@ import Assign from './Assign'
 import Simulator from './Simulator'
 import Calculate from './Calculate'
 
+/*
+Clean up
+- base: constant 400
+- robots: 2, 3
+
+Scale up Square
+- all robots should face outside
+- robots: 2, 3, 5, 7
+
+*/
+
+
 const Move = {
   forceStop: {},
+  enableExtend: true,
+  example: 'cleanup',
 
   start() {
     let targets = []
@@ -36,7 +50,7 @@ const Move = {
 
   async move() {
     // this.init()
-    await this.sleep(1000)
+    // await this.sleep(1500)
 
     let res = Assign.assign()
     let distMatrix = res.distMatrix
@@ -76,18 +90,21 @@ const Move = {
         if (this.forceStop[id]) throw('forceStop')
         let res = Calculate.calculate(id, target)
 
-        let distThreshold = 30
+        let distThreshold = 50
         let dirThreshold = 30
+        if (this.example === 'cleanup') dirThreshold = 20
         let angleThreshold = 5
+        if (this.example === 'cleanup') angleThreshold = 15
         let sleepTime = 30
         if (App.simulation) {
           distThreshold = 10
           dirThreshold = 10
           angleThreshold = 5
-          sleepTime = 10
+          sleepTime = 30
         }
 
-        let base = Math.min(200, res.dist+100)
+        let base = Math.min(400, res.dist+100)
+        if (this.example === 'cleanup') base = 800
         let a2 = base
         let b1 = base
         let a1 = 0
@@ -163,9 +180,9 @@ const Move = {
             if (Math.abs(angleDiff) > 60) {
               sleepTime = 60
             } else {
-              sleepTime  = 30
+              sleepTime  = 50
             }
-            sleepTime = Math.abs(angleDiff)
+            // sleepTime = Math.abs(angleDiff)
             await this.sleep(sleepTime) // 100
 
             command = { a1: 0, a2: 0, b1: 0, b2: 0 }
@@ -179,18 +196,18 @@ const Move = {
         console.log('lost AR marker')
         error++
         await this.sleep(100)
-        if (error > 20) break
+        if (error > 30) break
       }
     }
     console.log('finish')
     this.stop(id)
+    if (error <= 20){
+      if (this.enableExtend) this.extendRobot(id, target.len)
+    }
     // await this.sleep(1000)
     let robot = this.getRobotById(id)
     let angleDiff = target.angle - (robot.angle + 90)
     console.log(angleDiff)
-    if (error <= 20){
-      this.extendRobot(id, target.len)
-    }
   },
 
   extendRobot(id, len) {

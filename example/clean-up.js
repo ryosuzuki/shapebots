@@ -11,21 +11,23 @@ let ips = {
   10: '128.138.221.102'
 }
 
-let id = 3
+let ids = [3, 9]
 let val = 800
 
 console.log('start')
 const sendCommand = function(json) {
   const dgram = require('dgram')
-  const client = dgram.createSocket('udp4')
   let str = JSON.stringify(json)
   let message = Buffer.from(str)
   let port = 8883
-  let ip = ips[id]
-  client.send(message, 0, message.length, port, ip, function(err, bytes) {
-    if (err) throw err
-    client.close()
-  })
+  for (let id of ids) {
+    const client = dgram.createSocket('udp4')
+    let ip = ips[id]
+    client.send(message, 0, message.length, port, ip, function(err, bytes) {
+      if (err) throw err
+      client.close()
+    })
+  }
 }
 
 let commands = ['forward', 'backward', 'left', 'right']
