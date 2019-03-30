@@ -1,4 +1,4 @@
-
+import _ from 'lodash'
 import munkres from 'munkres-js'
 import Assign from './Assign'
 import Simulator from './Simulator'
@@ -38,22 +38,19 @@ const Move = {
 
   async wave() {
     let lens = [100, 300, 500]
-    let g1 = 0
-    let g2 = 1
-    let g3 = 2
-    let g4 = 1
+    let keys = [0, 1, 2, 1]
+    let robots = _.sortBy(App.state.robots, ['pos.x'])
+    let ids = robots.map(robot => robot.id)
     while (true) {
-      if (this.forceStop[1]) break
-      this.extendRobot(1, lens[g1])
-      this.extendRobot(2, lens[g2])
-      this.extendRobot(3, lens[g3])
-      this.extendRobot(4, lens[g4])
-      let temp = g1
-      g1 = g2
-      g2 = g3
-      g3 = g4
-      g4 = temp
-      await this.sleep(2000)
+      if (this.forceStop[ids[0]]) break
+      let i = 0
+      for (let id of ids) {
+        let key = keys[i]
+        this.extendRobot(id, lens[key])
+        i = (i + 1) % 4
+      }
+      await this.sleep(300)
+      keys = [keys[1], keys[2], keys[3], keys[0]]
     }
   },
 
