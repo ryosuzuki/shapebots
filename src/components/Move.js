@@ -15,14 +15,10 @@ Scale up Square
 
 */
 
-let hoge = 0
-
 const Move = {
   forceStop: {},
-  enableExtend: true,
-  initBefore: false,
-  strong: true,
-  example: 'cleanup',
+  strong: false,
+  example: '', // cleanup
 
   start() {
     let targets = []
@@ -40,6 +36,27 @@ const Move = {
     })
   },
 
+  async wave() {
+    let lens = [100, 300, 500]
+    let g1 = 0
+    let g2 = 1
+    let g3 = 2
+    let g4 = 1
+    while (true) {
+      if (this.forceStop[1]) break
+      this.extendRobot(1, lens[g1])
+      this.extendRobot(2, lens[g2])
+      this.extendRobot(3, lens[g3])
+      this.extendRobot(4, lens[g4])
+      let temp = g1
+      g1 = g2
+      g2 = g3
+      g3 = g4
+      g4 = temp
+      await this.sleep(2000)
+    }
+  },
+
   clear() {
     // this.init()
     App.setState({ targets: [], lines: [] })
@@ -52,7 +69,7 @@ const Move = {
   },
 
   async move() {
-    if (this.initBefore) {
+    if (App.state.initBeforeMove) {
       this.init()
       await this.sleep(1500)
     }
@@ -203,7 +220,7 @@ const Move = {
     console.log('finish: ' + id)
     this.stop(id)
     if (error <= 20){
-      if (this.enableExtend) this.extendRobot(id, target.len)
+      if (App.state.enableExtend) this.extendRobot(id, target.len)
     }
     await this.sleep(1000)
     let robot = this.getRobotById(id)

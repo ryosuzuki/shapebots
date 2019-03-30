@@ -1,7 +1,7 @@
 
 
 const Simulator = {
-  max: 1,
+  max: 4,
 
   initRobots() {
     let robots = []

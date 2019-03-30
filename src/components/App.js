@@ -18,17 +18,19 @@ class App extends Component {
     window.app = this
     window.App = this
 
-    this.simulation = false
+    this.simulation = true
 
     this.socket = socket
     this.state = {
+      initBeforeMove: false,
+      enableExtend: true,
       robots: [],
       ids: [],
       corners: [],
       targets: [],
       lines: [],
       dict: {},
-      keyframes: []
+      keyframes: [],
     }
 
     this.width = 1920
@@ -79,6 +81,16 @@ class App extends Component {
     console.log('v2')
   }
 
+  onClick(type) {
+    console.log(type)
+    if (type === 'init') {
+      this.setState({ initBeforeMove: !this.state.initBeforeMove })
+    }
+    if (type === 'extend') {
+      this.setState({ enableExtend: !this.state.enableExtend })
+    }
+  }
+
   render() {
     return (
       <div>
@@ -117,7 +129,22 @@ class App extends Component {
             <div className="ui basic button" onClick={ Move.clear.bind(Move) }>Clear</div>
             <div className="ui basic button" onClick={ Move.init.bind(Move) }>Init</div>
             <div className="ui basic button" onClick={ Move.stopAll.bind(Move) }>Stop</div>
+            <div className="ui basic button" onClick={ Move.wave.bind(Move) }>Wave</div>
             <br/>
+            <br/>
+            <div className="field">
+              <div className="ui checkbox" onClick={ this.onClick.bind(this, 'init') }>
+                <input type="checkbox" className="hidden" checked={this.state.initBeforeMove} onChange={ () => { console.log('change') } } />
+                <label>Initialize before moving</label>
+              </div>
+            </div>
+            <br/>
+            <div className="field">
+              <div className="ui checkbox" onClick={ this.onClick.bind(this, 'extend') }>
+                <input type="checkbox" className="hidden" checked={this.state.enableExtend} onChange={ () => { console.log('change') } } />
+                <label>Enable extend</label>
+              </div>
+            </div>
             <div className="ui divider" />
             <div className="ui basic button" onClick={ Animation.add.bind(Animation) }>Add</div>
             <div className="ui basic button" onClick={ Animation.save.bind(Animation) }>Save</div>
