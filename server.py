@@ -16,7 +16,7 @@ from cv2 import aruco
 
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-fps = 0.1 # 60
+fps = 30
 cameras = [0] # [0, 2]
 
 class HttpHandler(web.RequestHandler):
@@ -126,7 +126,7 @@ class SocketHandler(websocket.WebSocketHandler):
     parameters.perspectiveRemoveIgnoredMarginPerCell = 0.4 # 0.13
     # parameters.perpectiveRemovePixelPerCell = 10 # 4
     # Marker Identification
-    parameters.maxErroneousBitsInBorderRate = 0.6 # 0.35
+    parameters.maxErroneousBitsInBorderRate = 0.63 # 0.35
     parameters.errorCorrectionRate = 2.8 # 0.6
 
     return dictionary, parameters

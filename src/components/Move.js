@@ -19,6 +19,7 @@ const Move = {
   forceStop: {},
   strong: false,
   example: '', // cleanup
+  lens: {},
 
   start() {
     let targets = []
@@ -37,7 +38,7 @@ const Move = {
   },
 
   async wave() {
-    let lens = [100, 300, 500]
+    let lens = [100, 200, 300]
     let keys = [0, 1, 2, 1]
     let robots = _.sortBy(App.state.robots, ['pos.x'])
     let ids = robots.map(robot => robot.id)
@@ -49,7 +50,7 @@ const Move = {
         this.extendRobot(id, lens[key])
         i = (i + 1) % 4
       }
-      await this.sleep(300)
+      await this.sleep(4000)
       keys = [keys[1], keys[2], keys[3], keys[0]]
     }
   },
@@ -60,17 +61,12 @@ const Move = {
   },
 
   stopAll() {
-    for (let id = 1; id <= 10; id++) {
+    for (let id = 1; id <= 12; id++) {
       Move.forceStop(id)
     }
   },
 
   async move() {
-    if (App.state.initBeforeMove) {
-      this.init()
-      await this.sleep(1500)
-    }
-
     let res = Assign.assign()
     let distMatrix = res.distMatrix
     let rids = res.rids
@@ -101,6 +97,12 @@ const Move = {
   },
 
   async moveRobot2(id, target) {
+    if (App.state.initBeforeMove) {
+      this.init()
+      let time = this.lens[id]
+      await this.sleep(time + 500)
+    }
+
     let error = 0
     let okCount = 0
     let distOk = false
@@ -111,7 +113,7 @@ const Move = {
         let res = Calculate.calculate(id, target)
 
         let distThreshold = 30
-        let dirThreshold = 30
+        let dirThreshold = 50
         let angleThreshold = 5
         let sleepTime = 30
         if (App.simulation) {
@@ -131,24 +133,26 @@ const Move = {
           let rvo = Calculate.getRvoVelocity(id, target, dt)
 
           prev = null
-          let dir = this.getDirection(rvo.diff, dirThreshold)
-          let base = Math.min(400, res.dist+100)
-          if (this.strong) base = 1000
+          let calc = this.getDirection(rvo.diff, dirThreshold)
+          let dir = calc.dir
+          let diff = calc.diff
+          let base = Math.min(600, res.dist+50)
+          let Kd = Math.min(8, (res.dist + 200) / 100)
+          if (this.strong) base = 600
           let param = 120
           let command
           switch (dir) {
             case 'forward':
-              command = { a1: 0, a2: base, b1: base, b2: 0 }
+              command = { a1: 0, a2: base+diff*Kd, b1: base-diff*Kd, b2: 0 }
               break
             case 'backward':
-              command = { a1: base, a2: 0, b1: 0, b2: base }
+              command = { a1: base+diff*Kd, a2: 0, b1: 0, b2: base-diff*Kd }
               break
             case 'left':
-              command = { a1: param, a2: 0, b1: param, b2: 0 }
+              command = { a1: param+diff*0, a2: 0, b1: param+diff*0, b2: 0 }
               break
             case 'right':
-              param += 30
-              command = { a1: 0, a2: param, b1: 0, b2: param }
+              command = { a1: 0, a2: param+diff*0, b1: 0, b2: param+diff*0 }
               break
           }
           if (App.simulation) {
@@ -160,27 +164,27 @@ const Move = {
           await this.sleep(sleepTime) // 100
         } else {
           distOk = true
-          let diff = (360 + res.angleDiff) % 360
-          let dir = this.getDirection(diff, angleThreshold)
+          let angleDiff = (360 + res.angleDiff) % 360
+          let calc = this.getDirection(angleDiff, angleThreshold)
+          let dir = calc.dir
+          let diff = calc.diff
           if (dir === 'forward' || dir === 'backward') dir = 'stop'
-
-          diff = diff % 180
-          diff = Math.min(180 - diff, diff)
 
           let Kd = 2
           let D = !prev? 0 : diff - prev
           prev = diff
 
-          let p = diff - D * Kd
-          let param = 100 + p
+          // let param = Math.min(150, Math.abs(diff)*15) - D * Kd
+          // let param = 100 + p
+          let param = 200
+          let ms = Math.abs(diff)
           let command
           switch (dir) {
             case 'left':
-              command = { a1: param, a2: 0, b1: param, b2: 0 }
+              command = { a1: param, a2: 0, b1: param, b2: 0, ms: ms }
               break
             case 'right':
-              param += 30
-              command = { a1: 0, a2: param, b1: 0, b2: param }
+              command = { a1: 0, a2: param, b1: 0, b2: param, ms: ms }
               break
             default:
               command = { a1: 0, a2: 0, b1: 0, b2: 0 }
@@ -197,13 +201,7 @@ const Move = {
           } else {
             let message = { command: command, ip: App.ips[id], port: App.port }
             App.socket.send(JSON.stringify(message))
-            await this.sleep(p) // 100
-
-            command = { a1: 0, a2: 0, b1: 0, b2: 0 }
-            message = { command: command, ip: App.ips[id], port: App.port }
-            App.socket.send(JSON.stringify(message))
-            await this.sleep(30) // 100
-            console.log(diff)
+            await this.sleep(100) // 100
           }
         }
       } catch (err) {
@@ -230,25 +228,25 @@ const Move = {
 
   getDirection(diff, threshold) {
     if (0 <= diff && diff < threshold) {
-      return 'forward'
+      return { dir: 'forward', diff: diff }
     }
     if (threshold <= diff && diff < 90) {
-      return 'right'
+      return { dir: 'right', diff: diff }
     }
     if (90 <= diff && diff < 180 - threshold) {
-      return 'left'
+      return { dir: 'left', diff: 180 - diff }
     }
     if (180 - threshold <= diff && diff < 180 + threshold) {
-      return 'backward'
+      return { dir: 'backward', diff: 180 - diff }
     }
     if (180 + threshold <= diff && diff < 270) {
-      return 'right'
+      return { dir: 'right', diff: diff - 180 }
     }
     if (270 <= diff && diff < 360 - threshold) {
-      return 'left'
+      return { dir: 'left', diff: 360 - diff }
     }
     if (360 - threshold <= diff && diff <= 360) {
-      return 'forward'
+      return { dir: 'forward', diff: diff - 360 }
     }
   },
 
@@ -257,7 +255,7 @@ const Move = {
       let command = { pos_1: len, pos_2: len }
       Simulator.extendRobot(id, command)
     } else {
-      let reel = parseInt((len - 100) * 10)
+      let reel = parseInt((len - 100) * 10) + 1
       let max = 4000
       if (reel < 0) reel = 1
       if (reel > max) reel = max
@@ -269,6 +267,7 @@ const Move = {
       // 2000 -> 306
       // 3000 -> 391
       // 4000 -> 480
+      this.lens[id] = reel
       App.socket.send(JSON.stringify(message))
     }
   },

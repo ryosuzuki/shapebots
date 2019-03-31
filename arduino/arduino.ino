@@ -122,6 +122,16 @@ void loop() {
     analogWrite(a2, root["a2"]);
     analogWrite(b1, root["b1"]);
     analogWrite(b2, root["b2"]);
+
+    int ms = root["ms"];
+    if (ms > 0) {
+      delay(ms);
+      analogWrite(a1, 0);
+      analogWrite(a2, 0);
+      analogWrite(b1, 0);
+      analogWrite(b2, 0);      
+    }
+    
   }
 
   if (dir_1 == 0) {

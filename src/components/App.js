@@ -18,12 +18,12 @@ class App extends Component {
     window.app = this
     window.App = this
 
-    this.simulation = true
+    this.simulation = false
 
     this.socket = socket
     this.state = {
       initBeforeMove: false,
-      enableExtend: true,
+      enableExtend: false,
       robots: [],
       ids: [],
       corners: [],

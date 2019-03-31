@@ -8,11 +8,13 @@ let ips = {
   7: '128.138.221.147',
   8: '128.138.221.212',
   9: '128.138.221.156',
-  10: '128.138.221.102'
+  10: '128.138.221.102',
+  12: '128.138.221.212',
 }
 
-let id = 4
-let val = 800
+let id = 5
+let val = 500
+let ms = 10
 
 console.log('start')
 const sendCommand = function(json) {
@@ -39,6 +41,7 @@ process.stdin.on('keypress', function (ch, key) {
   switch (key.name) {
     case 'up':
       let up = { a1: 0, a2: val, b1: val, b2: 0 }
+      // up = { a1: val + 60, a2: 0, b1: 0, b2: val - 60 }
       sendCommand(up)
       break
     case 'down':
@@ -46,11 +49,11 @@ process.stdin.on('keypress', function (ch, key) {
       sendCommand(stop)
       break
     case 'left':
-      let left = { a1: val, a2: 0, b1: val, b2: 0 }
+      let left = { a1: val, a2: 0, b1: val, b2: 0, ms: ms }
       sendCommand(left)
       break
     case 'right':
-      let right = { a1: 0, a2: val+30, b1: 0, b2: val+30 }
+      let right = { a1: 0, a2: val, b1: 0, b2: val, ms }
       sendCommand(right)
       break
     default:
