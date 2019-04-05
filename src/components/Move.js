@@ -107,12 +107,18 @@ const Move = {
     let okCount = 0
     let distOk = false
     let prev
+
+    const startTime = Date.now()
+
+    let r = this.getRobotById(id)
+    const startDist = Math.sqrt((target.x - r.pos.x)**2 + (target.y - r.pos.y)**2)
+
     while (true) {
       try {
         if (this.forceStop[id]) throw('forceStop')
         let res = Calculate.calculate(id, target)
 
-        let distThreshold = 30
+        let distThreshold = 10
         let dirThreshold = 50
         let angleThreshold = 5
         let sleepTime = 30
@@ -209,7 +215,7 @@ const Move = {
         console.log('lost AR marker')
         error++
         await this.sleep(100)
-        if (error > 30) break
+        if (error > 50) break
       }
     }
     console.log('finish: ' + id)
@@ -217,13 +223,27 @@ const Move = {
     if (error <= 20){
       if (App.state.enableExtend) this.extendRobot(id, target.len)
     }
+    const endTime = Date.now()
+
+    const time = endTime - startTime
+
+
     await this.sleep(1000)
+
     let robot = this.getRobotById(id)
+    let dx = target.x - robot.pos.x
+    let dy = target.y - robot.pos.y
+    let dist = Math.sqrt(dx**2 + dy**2)
     let angleDiff = target.angle - (robot.angle + 90)
     angleDiff = (360 + angleDiff) % 360
     angleDiff = angleDiff % 180
     angleDiff = Math.min(180 - angleDiff, angleDiff)
-    console.log(angleDiff)
+
+    console.log('startDist: ' + startDist)
+    console.log('time: ' + time)
+    console.log('dist: ' + dist)
+    console.log('angle: ' + angleDiff)
+    console.log('error: ' + error)
   },
 
   getDirection(diff, threshold) {
