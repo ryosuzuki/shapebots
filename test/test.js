@@ -12,8 +12,8 @@ let ips = {
   12: '128.138.221.212',
 }
 
-let id = 5
-let val = 500
+let id = 6
+let val = 1023
 let ms = 10
 
 console.log('start')
