@@ -43,7 +43,7 @@ const Simulator = {
     App.setState({ robots: robots })
   },
 
-  moveRobot(id, command) {
+  moveRobot(id, dir) {
     let robots = App.state.robots
     let robot = robots[id-1]
 
@@ -54,23 +54,23 @@ const Simulator = {
     let angle = robot.angle
     let rad = Math.PI * (angle-90) / 180
 
-    let a1 = command.a1
-    let a2 = command.a2
-    let b1 = command.b1
-    let b2 = command.b2
-
     let unit = 5
     let v = { x: 0, y: 0 }
-    if (a2 === b1 && a2 > 0) {
-      v.x = unit * Math.cos(rad)
-      v.y = unit * Math.sin(rad)
-    } else if (a1 === b2 && a1 > 0) {
-      v.x = - unit * Math.cos(rad)
-      v.y = - unit * Math.sin(rad)
-    } else if (a2 > b1) {
-      angle += 5
-    } else if (a2 < b1) {
-      angle -= 5
+    switch (dir) {
+      case 'forward':
+        v.x = unit * Math.cos(rad)
+        v.y = unit * Math.sin(rad)
+        break
+      case 'backward':
+        v.x = - unit * Math.cos(rad)
+        v.y = - unit * Math.sin(rad)
+        break
+      case 'left':
+        angle -= 5
+        break
+      case 'right':
+        angle += 5
+        break
     }
 
     let next = {

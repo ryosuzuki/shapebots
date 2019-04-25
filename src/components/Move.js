@@ -162,7 +162,7 @@ const Move = {
               break
           }
           if (App.simulation) {
-            Simulator.moveRobot(id, command)
+            Simulator.moveRobot(id, dir)
           } else {
             let message = { command: command, ip: App.ips[id], port: App.port }
             App.socket.send(JSON.stringify(message))
