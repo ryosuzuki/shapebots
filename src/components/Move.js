@@ -118,7 +118,7 @@ const Move = {
         if (this.forceStop[id]) throw('forceStop')
         let res = Calculate.calculate(id, target)
 
-        let distThreshold = 10
+        let distThreshold = 30
         let dirThreshold = 50
         let angleThreshold = 5
         let sleepTime = 30
@@ -215,7 +215,7 @@ const Move = {
         console.log('lost AR marker')
         error++
         await this.sleep(100)
-        if (error > 50) break
+        if (error > 30) break
       }
     }
     console.log('finish: ' + id)

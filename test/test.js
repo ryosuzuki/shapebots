@@ -12,8 +12,8 @@ let ips = {
   12: '128.138.221.212',
 }
 
-let id = 6
-let val = 1023
+let id = 3
+let val = 300
 let ms = 10
 
 console.log('start')
@@ -49,11 +49,11 @@ process.stdin.on('keypress', function (ch, key) {
       sendCommand(stop)
       break
     case 'left':
-      let left = { a1: val, a2: 0, b1: val, b2: 0, ms: ms }
+      let left = { a1: val, a2: 0, b1: val, b2: 0 }
       sendCommand(left)
       break
     case 'right':
-      let right = { a1: 0, a2: val, b1: 0, b2: val, ms }
+      let right = { a1: 0, a2: val, b1: 0, b2: val }
       sendCommand(right)
       break
     default:

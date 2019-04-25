@@ -12,7 +12,7 @@ let ips = {
   12: '128.138.221.212',
 }
 
-let id = 3
+let ids = [3, 5, 9, 10]
 let max = 5000
 
 const keypress = require('keypress')
@@ -25,11 +25,14 @@ const sendMessage = function(json) {
   let str = JSON.stringify(json)
   let message = Buffer.from(str)
   let port = 8883
-  let ip = ips[id]
-  client.send(message, 0, message.length, port, ip, (err, bytes) => {
-    if (err) throw err
-    client.close()
-  })
+  for (let id of ids) {
+    const client = dgram.createSocket('udp4')
+    let ip = ips[id]
+    client.send(message, 0, message.length, port, ip, (err, bytes) => {
+      if (err) throw err
+      client.close()
+    })
+  }
 }
 
 const rl = readline.createInterface({

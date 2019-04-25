@@ -129,6 +129,13 @@ class SocketHandler(websocket.WebSocketHandler):
     parameters.maxErroneousBitsInBorderRate = 0.63 # 0.35
     parameters.errorCorrectionRate = 2.8 # 0.6
 
+    # For projected US map application
+    # parameters.adaptiveThreshWinSizeMin = 18 # >= 3
+    # parameters.adaptiveThreshWinSizeStep = 10 # 10
+    # parameters.errorCorrectionRate = 2.4 # 0.6
+
+
+
     return dictionary, parameters
 
 def main():
