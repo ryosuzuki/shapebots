@@ -91,11 +91,13 @@ void loop() {
     int init_1 = root["init_1"];
     int init_2 = root["init_2"];
     if (init_1 > 0) {
-      init(1);
+      Serial.println("init_1");
+      initialize(1);
     }
     if (init_2 > 0) {
-      init(2);
-    }      
+      Serial.println("init_2");
+      initialize(2);
+    }
 
     pos_1 = root["pos_1"];
     pos_2 = root["pos_2"];
@@ -204,7 +206,7 @@ void off() {
   digitalWrite(d2, LOW);
 }
 
-void init(int num) {
+void initialize(int num) {
   while (true) {
     down(num);
     delay(1);
