@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/ryosuzuki/swarm#readme",
   "dependencies": {
-    "async": "^2.5.0",
+    "async": "^2.6.4",
     "dgram": "^1.0.1",
     "glob": "^7.1.2",
     "jquery": "^3.2.1",
